@@ -1,5 +1,7 @@
 # Table of Contents - .NET API/MVC Course
 
+> **Note**: This document is a reference extracted from previous year presentations. It contains detailed slide-by-slide breakdowns and serves as a planning tool. The actual learning materials created from this content will be beginner-friendly and follow the [technology topic template](../templates/technology-topic-template.md).
+
 This document contains the extracted table of contents from the PowerPoint presentations used in previous years for the .NET API/MVC course.
 
 ## Source Files
