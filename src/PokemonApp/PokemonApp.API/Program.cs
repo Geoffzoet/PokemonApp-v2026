@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using PokemonApp.API.Data;
 using PokemonApp.API.Interfaces;
 using PokemonApp.API.Repositories;
+using PokemonApp.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +15,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 // Register Repository
 builder.Services.AddScoped<IPokemonRepository, PokemonRepository>();
+
+// Register Service
+builder.Services.AddScoped<IPokemonService, PokemonService>();
 
 var app = builder.Build();
 
