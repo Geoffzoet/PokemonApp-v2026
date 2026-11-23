@@ -6,10 +6,15 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using PokemonApp.API.Data;
 using PokemonApp.API.Interfaces;
+using PokemonApp.API.Options;
 using PokemonApp.API.Repositories;
 using PokemonApp.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure strongly-typed options
+builder.Services.Configure<JwtOptions>(
+    builder.Configuration.GetSection(JwtOptions.SectionName));
 
 // Add services to the container
 builder.Services.AddControllers();
