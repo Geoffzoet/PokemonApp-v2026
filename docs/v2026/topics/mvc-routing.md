@@ -2237,13 +2237,572 @@ public class PokemonController : Controller
 
 ## 11. Troubleshooting & Common Issues
 
-[Content to be added]
+### Frequently Encountered Problems
+
+#### Problem 1: 404 Not Found - Route Not Matching
+
+**Symptoms:**
+- Navigate to a URL and get "404 Not Found"
+- Action method exists but isn't being called
+- URL seems correct but doesn't match any route
+
+**Cause:**
+The URL doesn't match any defined route pattern, or routes are configured incorrectly.
+
+**Solution:**
+
+**Step 1: Check route pattern matches URL structure**
+```csharp
+// If your URL is: /Pokemon/Details/5
+// Your route must have this structure:
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller}/{action}/{id?}");  // ✅ Matches!
+
+// This would NOT match:
+pattern: "{controller}/{id}"  // ❌ Missing {action}
+```
+
+**Step 2: Verify controller and action names**
+```csharp
+// URL: /Pokemon/Details/5
+
+// Controller file: PokemonController.cs
+public class PokemonController : Controller  // ✅ Name must match
+{
+    public IActionResult Details(int id)  // ✅ Action name must match
+    {
+        return View();
+    }
+}
+```
+
+**Step 3: Check if routing middleware is configured**
+```csharp
+// Program.cs - must have UseRouting()
+var app = builder.Build();
+
+app.UseRouting();  // ← Required for routing to work!
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+```
+
+**Step 4: Enable routing debug logging**
+```csharp
+// Program.cs - add logging to see what's happening
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Logging.AddFilter("Microsoft.AspNetCore.Routing", LogLevel.Debug);
+
+builder.Services.AddControllersWithViews();
+```
+
+Run your app and check the console output for routing decisions.
+
+---
+
+#### Problem 2: Attribute Route Not Working
+
+**Symptoms:**
+- Added `[Route]` attribute but URL returns 404
+- Attribute routing seems to be ignored
+- Conventional routing works but not attribute routing
+
+**Cause:**
+`MapControllers()` is not called in Program.cs, or attribute syntax is incorrect.
+
+**Solution:**
+
+**Check 1: Verify MapControllers is called**
+```csharp
+// Program.cs
+var app = builder.Build();
+
+app.UseRouting();
+
+// MUST have this for attribute routing to work:
+app.MapControllers();  // ← Add this!
+
+// You can have both:
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.MapControllers();  // Both conventional and attribute routing
+```
+
+**Check 2: Verify attribute syntax**
+```csharp
+// CORRECT attribute routing
+[Route("pokemon")]
+public class PokemonController : Controller
+{
+    [Route("list")]  // Becomes: /pokemon/list
+    public IActionResult List() { }
+}
+
+// INCORRECT - missing MapControllers() in Program.cs
+// or wrong attribute syntax
+```
+
+**Check 3: Check for conflicting routes**
+```csharp
+// If both conventional and attribute routes exist,
+// attribute routes take precedence
+
+public class PokemonController : Controller
+{
+    // This attribute route overrides conventional routing for this action
+    [Route("custom-pokemon-url")]
+    public IActionResult Index() { }  // Now accessible at /custom-pokemon-url, not /Pokemon/Index
+}
+```
+
+---
+
+#### Problem 3: Parameter Not Binding - Always Null or Zero
+
+**Symptoms:**
+- Route parameter is always null or default value
+- URL contains the value but action parameter doesn't receive it
+- Getting `0` for int parameters or `null` for string parameters
+
+**Cause:**
+Parameter name mismatch between route template and action method parameter.
+
+**Solution:**
+
+**The route parameter name MUST match the action parameter name exactly:**
+
+```csharp
+// CORRECT - names match
+[Route("pokemon/{id}")]
+public IActionResult Details(int id)  // ✅ 'id' matches route parameter
+{
+    return View();
+}
+
+// WRONG - names don't match
+[Route("pokemon/{pokemonId}")]
+public IActionResult Details(int id)  // ❌ 'id' != 'pokemonId'
+{
+    // id will always be 0!
+    return View();
+}
+
+// FIX - match the names
+[Route("pokemon/{pokemonId}")]
+public IActionResult Details(int pokemonId)  // ✅ Now it works!
+{
+    return View();
+}
+```
+
+**Alternative: Use [FromRoute] attribute to map different names:**
+```csharp
+[Route("pokemon/{pokemonId}")]
+public IActionResult Details([FromRoute(Name = "pokemonId")] int id)
+{
+    // Now 'id' parameter receives the value from {pokemonId} route parameter
+    return View();
+}
+```
+
+---
+
+#### Problem 4: Multiple Routes Matching - Ambiguous Match Error
+
+**Symptoms:**
+- Error: "AmbiguousMatchException: The request matched multiple endpoints"
+- Multiple routes could match the same URL
+- Application crashes when navigating to certain URLs
+
+**Cause:**
+Two or more routes match the same URL pattern, and ASP.NET Core can't decide which to use.
+
+**Solution:**
+
+**Example of ambiguous routes:**
+```csharp
+// AMBIGUOUS - both could match /pokemon/list
+app.MapControllerRoute(
+    name: "route1",
+    pattern: "{controller}/{action}");
+
+app.MapControllerRoute(
+    name: "route2",
+    pattern: "pokemon/{action}");
+
+// URL /pokemon/list matches BOTH routes!
+```
+
+**Fix: Use more specific routes or constraints**
+```csharp
+// FIXED - add constraints to differentiate
+app.MapControllerRoute(
+    name: "pokemon-specific",
+    pattern: "pokemon/{action}",
+    defaults: new { controller = "Pokemon" });  // Specific controller
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}");  // General fallback
+```
+
+**Or use attribute routing for specific actions:**
+```csharp
+public class PokemonController : Controller
+{
+    [Route("pokemon/special-list")]  // Specific, unambiguous
+    public IActionResult SpecialList() { }
+
+    public IActionResult List() { }  // Uses conventional routing
+}
+```
+
+---
+
+#### Problem 5: Optional Parameter Not Working
+
+**Symptoms:**
+- URL without optional parameter returns 404
+- Optional parameter marked with `?` but still required
+- `/Pokemon/List` works but `/Pokemon/List/5` doesn't (or vice versa)
+
+**Cause:**
+Optional parameter syntax incorrect, or action method parameter not nullable.
+
+**Solution:**
+
+**Correct syntax for optional parameters:**
+
+```csharp
+// ROUTE: Mark parameter as optional with ?
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller}/{action}/{id?}");  // ✅ {id?} is optional
+
+// ACTION: Use nullable type for optional parameter
+public IActionResult Details(int? id)  // ✅ int? is nullable
+{
+    if (id == null)
+        return BadRequest("ID required");
+
+    return View();
+}
+
+// WRONG - non-nullable type with optional route parameter
+[Route("pokemon/{id?}")]
+public IActionResult Details(int id)  // ❌ int is not nullable
+{
+    // This will cause issues when id is not provided
+}
+
+// FIX - make it nullable or provide default
+[Route("pokemon/{id?}")]
+public IActionResult Details(int id = 0)  // ✅ Default value
+{
+    if (id == 0)
+        return View("List");  // Handle missing ID
+
+    return View();
+}
+```
+
+---
+
+#### Problem 6: Route Constraint Not Working
+
+**Symptoms:**
+- URLs that should be blocked still match
+- Constraint seems to be ignored
+- Getting type conversion errors despite using constraints
+
+**Cause:**
+Constraint syntax error, or constraint type doesn't match parameter type.
+
+**Solution:**
+
+**Check constraint syntax:**
+```csharp
+// CORRECT constraint syntax
+[Route("pokemon/{id:int}")]  // ✅ Colon before constraint type
+public IActionResult Details(int id) { }
+
+// WRONG
+[Route("pokemon/{id int}")]  // ❌ Missing colon
+[Route("pokemon/{id::int}")]  // ❌ Double colon
+```
+
+**Check constraint matches parameter type:**
+```csharp
+// CORRECT - constraint and parameter type match
+[Route("pokemon/{id:int}")]
+public IActionResult Details(int id) { }  // ✅ int constraint, int parameter
+
+// WRONG - mismatch
+[Route("pokemon/{id:int}")]
+public IActionResult Details(string id) { }  // ❌ int constraint, string parameter
+```
+
+**Multiple constraints:**
+```csharp
+// CORRECT - multiple constraints with colons
+[Route("pokemon/{id:int:min(1):max(999)}")]
+public IActionResult Details(int id) { }  // ✅ All constraints chained
+```
+
+---
+
+#### Problem 7: Generated URLs Are Wrong
+
+**Symptoms:**
+- `Url.Action()` generates incorrect URLs
+- Links point to wrong pages
+- Generated URL doesn't match expected route
+
+**Cause:**
+Wrong parameters passed to URL helper, or route name mismatch.
+
+**Solution:**
+
+**Check you're passing correct controller and action names:**
+```csharp
+// CORRECT
+@Url.Action("Details", "Pokemon", new { id = 5 })
+// Generates: /Pokemon/Details/5
+
+// WRONG - typo in action name
+@Url.Action("Detail", "Pokemon", new { id = 5 })  // ❌ No action named "Detail"
+// Generates: (empty string or throws exception)
+
+// WRONG - typo in controller name
+@Url.Action("Details", "Pokemons", new { id = 5 })  // ❌ No controller named "Pokemons"
+```
+
+**Using named routes:**
+```csharp
+// If you gave your route a name, use Url.RouteUrl
+app.MapControllerRoute(
+    name: "pokemon-route",
+    pattern: "pokedex/{id}",
+    defaults: new { controller = "Pokemon", action = "Details" });
+
+// Generate URL using route name
+@Url.RouteUrl("pokemon-route", new { id = 5 })  // ✅ Generates: /pokedex/5
+```
+
+---
+
+### Error Messages Explained
+
+| Error Message | Meaning | Solution |
+|---------------|---------|----------|
+| `No route matches the supplied values` | URL generation failed; controller/action not found | Check controller and action names in `Url.Action()` |
+| `AmbiguousMatchException: The request matched multiple endpoints` | Multiple routes match same URL | Reorder routes or add constraints |
+| `InvalidOperationException: No webpage was found` | 404 - route exists but view is missing | Create the view file |
+| `No route matches the HTTP request` | No route pattern matches the URL | Check route patterns in Program.cs |
+| `The constraint entry 'xyz' on the route...is not valid` | Unknown constraint type | Check constraint name spelling |
+
+### Debugging Strategies
+
+**Step-by-step debugging:**
+
+**1. Enable detailed routing logs**
+```csharp
+// Program.cs
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Logging.AddFilter("Microsoft.AspNetCore.Routing", LogLevel.Information);
+builder.Logging.AddFilter("Microsoft.AspNetCore.Mvc", LogLevel.Information);
+```
+
+**2. List all registered routes**
+```csharp
+// Add this temporarily in Program.cs before app.Run()
+var routeEndpoints = app.Services.GetService<EndpointDataSource>();
+Console.WriteLine("=== Registered Routes ===");
+foreach (var endpoint in routeEndpoints!.Endpoints)
+{
+    Console.WriteLine($"Route: {endpoint.DisplayName}");
+}
+```
+
+**3. Test routes systematically**
+```csharp
+// Create a test controller to verify routing
+public class TestController : Controller
+{
+    // Test conventional routing: /Test/Index
+    public IActionResult Index()
+    {
+        return Content("Test/Index works!");
+    }
+
+    // Test with parameter: /Test/WithParam/123
+    public IActionResult WithParam(int id)
+    {
+        return Content($"Test/WithParam works! ID: {id}");
+    }
+
+    // Test attribute routing: /test-custom
+    [Route("test-custom")]
+    public IActionResult Custom()
+    {
+        return Content("Custom route works!");
+    }
+}
+```
+
+**4. Use browser developer tools**
+- Open DevTools (F12)
+- Navigate to Network tab
+- Try your URL
+- Check the status code (200 = success, 404 = not found)
+- Look at the request URL to verify it's what you expected
+
+**5. Check routing in action method**
+```csharp
+public IActionResult Debug()
+{
+    // See what route values were matched
+    var routeData = RouteData.Values;
+    var info = string.Join(", ", routeData.Select(kvp => $"{kvp.Key}={kvp.Value}"));
+
+    return Content($"Route values: {info}");
+}
+```
+
+### Common Debugging Workflow
+
+```
+1. URL returns 404
+   ↓
+2. Check route is defined in Program.cs
+   ↓
+3. Check UseRouting() and MapControllerRoute() are called
+   ↓
+4. Check controller and action names match exactly
+   ↓
+5. Enable routing debug logs
+   ↓
+6. Check console output for route matching
+   ↓
+7. Verify parameter names match between route and action
+   ↓
+8. Test with simple route first (/Test/Index)
+   ↓
+9. Add complexity gradually (parameters, constraints, etc.)
+```
+
+### Where to Get Help
+
+- **Official Documentation**: [ASP.NET Core Routing](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/routing)
+- **Route Debugger Tool**: [Route Debugger NuGet Package](https://www.nuget.org/packages/RouteDebugger/)
+- **Community Forum**: [ASP.NET Community Forums](https://forums.asp.net/)
+- **Stack Overflow Tag**: [`asp.net-core-routing`](https://stackoverflow.com/questions/tagged/asp.net-core-routing)
+- **GitHub Issues**: [ASP.NET Core GitHub](https://github.com/dotnet/aspnetcore/issues)
+- **Discord**: [.NET Discord Community](https://discord.gg/dotnet)
 
 ---
 
 ## 12. Additional Resources
 
-[Content to be added]
+### Official Documentation
+
+- **[ASP.NET Core Routing](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/routing)** - Official Microsoft documentation on routing fundamentals
+- **[Routing to controller actions in ASP.NET Core](https://learn.microsoft.com/en-us/aspnet/core/mvc/controllers/routing)** - MVC-specific routing guide
+- **[Attribute routing](https://learn.microsoft.com/en-us/aspnet/core/mvc/controllers/routing#attribute-routing)** - Deep dive into attribute routing
+- **[Route constraints](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/routing#route-constraints)** - Complete list of route constraints
+- **[URL generation](https://learn.microsoft.com/en-us/aspnet/core/mvc/controllers/routing#url-generation)** - How to generate URLs programmatically
+
+### Recommended Tutorials
+
+- **[Microsoft Learn: Create a web app with ASP.NET Core MVC](https://learn.microsoft.com/en-us/learn/modules/create-aspnet-core-mvc-app/)** - Official step-by-step tutorial including routing
+- **[Pluralsight: Building Web Applications with ASP.NET Core MVC](https://www.pluralsight.com/courses/building-web-applications-asp-dot-net-core-mvc)** - Comprehensive video course covering routing patterns
+- **[LinkedIn Learning: ASP.NET Core MVC](https://www.linkedin.com/learning/asp-dot-net-core-mvc)** - In-depth routing section with practical examples
+
+### Video Resources
+
+- **[IAmTimCorey: Intro to ASP.NET Core MVC](https://www.youtube.com/watch?v=1ck9LIBxO14)** - Beginner-friendly tutorial covering routing basics
+- **[Kudvenkat: ASP.NET Core Tutorial](https://www.youtube.com/playlist?list=PL6n9fhu94yhVkdrusLaQsfERmL_Jh4XmU)** - Detailed video series with dedicated routing episodes
+- **[Nick Chapsas: ASP.NET Core Routing Tricks](https://www.youtube.com/c/NickChapsas)** - Advanced routing patterns and tips
+
+### Books
+
+- **Pro ASP.NET Core 6** by Adam Freeman - Chapter 13 covers routing comprehensively with real-world examples
+- **ASP.NET Core in Action, Third Edition** by Andrew Lock - Excellent coverage of routing patterns and best practices
+- **Essential ASP.NET Core MVC** by Adam Freeman - Focused guide on MVC including routing fundamentals
+
+### Community Resources
+
+- **[Reddit: r/dotnet](https://www.reddit.com/r/dotnet/)** - Active community for ASP.NET Core questions
+- **[Reddit: r/csharp](https://www.reddit.com/r/csharp/)** - General C# and ASP.NET discussions
+- **[ASP.NET Community Standup](https://dotnet.microsoft.com/live/community-standup)** - Weekly live stream with ASP.NET team
+- **[Stack Overflow](https://stackoverflow.com/questions/tagged/asp.net-core-routing)** - Tagged questions on ASP.NET Core routing
+- **[.NET Discord](https://discord.gg/dotnet)** - Real-time help from the .NET community
+
+### Tools and Extensions
+
+- **[Route Debugger](https://www.nuget.org/packages/RouteDebugger/)** - Visual route debugging tool for development
+- **[Swagger/Swashbuckle](https://github.com/domaindrivendev/Swashbuckle.AspNetCore)** - Automatically document your routes as API endpoints
+- **[OzCode](https://oz-code.com/)** - Advanced debugging tool with route visualization
+- **[ReSharper](https://www.jetbrains.com/resharper/)** - Code analysis including route configuration hints
+
+### Related Technologies
+
+- **API Controllers and Routing** - Learn how routing works differently in Web APIs
+  - See: [Controllers and Routing documentation](controllers-and-routing.md)
+- **Tag Helpers** - Use `asp-controller` and `asp-action` attributes for clean URL generation
+  - See: [Tag Helpers documentation](tag-helpers.md)
+- **Areas in ASP.NET Core** - Organize large applications with area-based routing
+  - [Areas in ASP.NET Core](https://learn.microsoft.com/en-us/aspnet/core/mvc/controllers/areas)
+- **Minimal APIs** - Alternative routing approach for simpler applications
+  - [Minimal APIs overview](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/minimal-apis)
+
+### Next Steps
+
+After mastering MVC routing, consider learning:
+
+1. **Advanced Routing Patterns**
+   - Learn about route constraints with custom validators
+   - Implement complex multi-segment routes
+   - Master route debugging and performance optimization
+   - **Why**: Handle complex URL structures in enterprise applications
+
+2. **Areas in ASP.NET Core**
+   - Organize large applications into logical sections
+   - Each area can have its own controllers, views, and routing
+   - **Why**: Better code organization for large projects
+
+3. **API Routing**
+   - Learn RESTful routing conventions
+   - Understand HTTP verb routing ([HttpGet], [HttpPost], etc.)
+   - Master API versioning through routes
+   - **Why**: Build professional APIs with clean, predictable URLs
+
+4. **Custom Route Constraints**
+   - Create your own route constraint classes
+   - Implement business-rule-based routing
+   - **Why**: Enforce complex validation rules at the routing level
+
+5. **Middleware and Routing**
+   - Understand how routing middleware works
+   - Create custom routing middleware
+   - **Why**: Deep understanding of ASP.NET Core request pipeline
+
+6. **Performance Optimization**
+   - Route caching strategies
+   - Optimize route matching performance
+   - **Why**: Ensure your application scales efficiently
+
+### Cheat Sheets and Quick References
+
+- **[ASP.NET Core Routing Cheat Sheet](https://github.com/dotnet/AspNetCore.Docs/blob/main/aspnetcore/fundamentals/routing.md)** - Quick reference on GitHub
+- **Route Constraint Reference** - See Appendix below for complete list
+- **URL Generation Patterns** - See Appendix below for common patterns
 
 ---
 
@@ -2251,11 +2810,229 @@ public class PokemonController : Controller
 
 ### Glossary
 
-[Content to be added]
+**Action**: A public method on a controller class that handles HTTP requests and returns an `IActionResult`.
+
+**Action Method**: See Action.
+
+**Ambiguous Match**: An error that occurs when multiple routes could match the same URL and ASP.NET Core cannot determine which one to use.
+
+**Attribute Routing**: A routing approach where routes are defined using `[Route]` attributes directly on controller classes and action methods.
+
+**Catch-All Parameter**: A route parameter that captures all remaining URL segments. Example: `{*path}` captures everything after the prefix.
+
+**Conventional Routing**: A routing approach where routes are defined centrally in Program.cs with patterns that apply to multiple controllers.
+
+**Controller**: A class that inherits from `Controller` and contains action methods that handle HTTP requests.
+
+**Default Route**: A route pattern that includes default values for controller and/or action, typically `{controller=Home}/{action=Index}`.
+
+**Endpoint**: The combination of a URL pattern and the action method it maps to. Each route creates one or more endpoints.
+
+**HTTP Verb**: The method of an HTTP request (GET, POST, PUT, DELETE, etc.). Can be specified in routing with attributes like `[HttpGet]`, `[HttpPost]`.
+
+**MapControllers**: A method called in Program.cs to enable attribute routing: `app.MapControllers()`.
+
+**MapControllerRoute**: A method called in Program.cs to define a conventional route: `app.MapControllerRoute()`.
+
+**Optional Parameter**: A route parameter marked with `?` that doesn't have to be present in the URL. Example: `{id?}`.
+
+**Route**: A pattern that maps URLs to controller actions. Defined either conventionally or with attributes.
+
+**Route Constraint**: A rule that restricts what values a route parameter can accept. Example: `{id:int}` only accepts integers.
+
+**Route Parameter**: A placeholder in a route template enclosed in curly braces that captures values from URLs. Example: `{id}`.
+
+**Route Template**: The pattern string that defines how URLs map to actions. Example: `{controller}/{action}/{id?}`.
+
+**Route Token**: Special placeholders like `[controller]` and `[action]` that are replaced with actual controller/action names.
+
+**Routing Middleware**: The ASP.NET Core component that matches incoming URLs to routes. Configured with `app.UseRouting()`.
+
+**Slug**: A URL-friendly string identifier, typically lowercase with hyphens. Example: `pikachu-electric-type` instead of numerical IDs.
+
+**URL Generation**: The process of creating URLs programmatically using helpers like `Url.Action()` instead of hardcoding paths.
+
+**URL Pattern**: See Route Template.
+
+---
 
 ### Cheat Sheet
 
-[Content to be added]
+#### Quick Route Setup
+
+**Minimal Program.cs:**
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddControllersWithViews();
+
+var app = builder.Build();
+
+app.UseRouting();
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.Run();
+```
+
+#### Route Template Syntax
+
+| Syntax | Description | Example |
+|--------|-------------|---------|
+| `{parameter}` | Required parameter | `{id}` - must be present |
+| `{parameter?}` | Optional parameter | `{id?}` - can be omitted |
+| `{parameter=value}` | Default value | `{action=Index}` - defaults to Index |
+| `{*parameter}` | Catch-all | `{*path}` - captures all remaining segments |
+| `literal` | Fixed text | `api/pokemon` - exact match |
+
+#### Common Route Constraints
+
+```csharp
+{id:int}                    // Integer only
+{id:int:min(1)}            // Integer >= 1
+{id:int:max(999)}          // Integer <= 999
+{id:int:range(1,999)}      // Integer between 1-999
+{code:length(5)}           // Exactly 5 characters
+{code:minlength(3)}        // At least 3 characters
+{code:maxlength(10)}       // At most 10 characters
+{name:alpha}               // Letters only
+{active:bool}              // Boolean (true/false)
+{date:datetime}            // DateTime value
+{id:guid}                  // GUID format
+{slug:regex(^[a-z-]+$)}    // Regex pattern
+```
+
+#### Attribute Routing Quick Reference
+
+```csharp
+// Controller-level route
+[Route("api/pokemon")]
+public class PokemonController : Controller { }
+
+// Action-level route
+[Route("details/{id:int}")]
+public IActionResult Details(int id) { }
+
+// Combining routes
+[Route("api/[controller]")]        // /api/pokemon
+public class PokemonController : Controller
+{
+    [Route("[action]/{id}")]       // /api/pokemon/details/5
+    public IActionResult Details(int id) { }
+}
+
+// HTTP verb attributes
+[HttpGet]                          // GET requests only
+[HttpPost]                         // POST requests only
+[HttpPut]                          // PUT requests only
+[HttpDelete]                       // DELETE requests only
+[HttpGet("custom-url")]            // GET with custom route
+```
+
+#### URL Generation
+
+```cshtml
+@* Generate URL using action/controller *@
+@Url.Action("Details", "Pokemon", new { id = 5 })
+<!-- Output: /Pokemon/Details/5 -->
+
+@* Generate link tag *@
+@Html.ActionLink("View Details", "Details", "Pokemon", new { id = 5 }, null)
+<!-- Output: <a href="/Pokemon/Details/5">View Details</a> -->
+
+@* Tag Helper syntax *@
+<a asp-controller="Pokemon" asp-action="Details" asp-route-id="5">View</a>
+<!-- Output: <a href="/Pokemon/Details/5">View</a> -->
+
+@* Form tag helper *@
+<form asp-controller="Pokemon" asp-action="Create" method="post">
+<!-- Output: <form action="/Pokemon/Create" method="post"> -->
+```
+
+#### Common Routing Patterns
+
+**Standard CRUD:**
+```csharp
+GET    /pokemon              → Index()         // List all
+GET    /pokemon/5            → Details(5)      // View one
+GET    /pokemon/create       → Create()        // Show form
+POST   /pokemon              → Create(model)   // Submit form
+GET    /pokemon/5/edit       → Edit(5)         // Show form
+POST   /pokemon/5            → Edit(5, model)  // Submit edit
+POST   /pokemon/5/delete     → Delete(5)       // Delete
+```
+
+**RESTful API:**
+```csharp
+GET    /api/pokemon          → GetAll()
+GET    /api/pokemon/5        → GetById(5)
+POST   /api/pokemon          → Create(model)
+PUT    /api/pokemon/5        → Update(5, model)
+DELETE /api/pokemon/5        → Delete(5)
+```
+
+#### Multiple Routes (Conventional)
+
+```csharp
+// Specific routes first, general routes last
+app.MapControllerRoute(
+    name: "admin",
+    pattern: "admin/{action=Dashboard}",
+    defaults: new { controller = "Admin" });
+
+app.MapControllerRoute(
+    name: "pokemon",
+    pattern: "pokemon/{action=Index}/{id?}",
+    defaults: new { controller = "Pokemon" });
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+```
+
+#### Debugging Commands
+
+```csharp
+// Enable route logging
+builder.Logging.AddFilter("Microsoft.AspNetCore.Routing", LogLevel.Debug);
+
+// List all registered routes
+var endpoints = app.Services.GetService<EndpointDataSource>();
+foreach (var endpoint in endpoints!.Endpoints)
+{
+    Console.WriteLine(endpoint.DisplayName);
+}
+
+// Check route values in action
+public IActionResult Debug()
+{
+    var routeData = RouteData.Values;
+    return Content(string.Join(", ", routeData.Select(kvp => $"{kvp.Key}={kvp.Value}")));
+}
+```
+
+#### Common Pitfalls
+
+| Issue | Problem | Solution |
+|-------|---------|----------|
+| 404 Not Found | Route not defined | Check Program.cs route patterns |
+| Parameter always null | Name mismatch | Ensure route param name matches action param |
+| Attribute route ignored | Missing `MapControllers()` | Add `app.MapControllers()` in Program.cs |
+| Ambiguous match error | Multiple routes match | Reorder routes or add constraints |
+| Wrong URL generated | Typo in controller/action | Check spelling in `Url.Action()` |
+
+#### Best Practices Checklist
+
+- [ ] Use lowercase URLs with hyphens
+- [ ] Add constraints to parameters (`:int`, `:guid`, etc.)
+- [ ] Put specific routes before general routes
+- [ ] Use attribute routing for custom URLs
+- [ ] Generate URLs dynamically, don't hardcode
+- [ ] Name important routes for easier URL generation
+- [ ] Keep URLs short and meaningful
+- [ ] Use plural nouns for collections
+- [ ] Don't expose file extensions in URLs
+- [ ] Test routes systematically
 
 ---
 
@@ -2263,4 +3040,4 @@ public class PokemonController : Controller
 
 | Version | Date | Changes |
 |---------|------|---------|
-| 1.0 | 2026-11-23 | Initial version |
+| 1.0 | 2026-11-23 | Initial version - Complete MVC Routing documentation |
