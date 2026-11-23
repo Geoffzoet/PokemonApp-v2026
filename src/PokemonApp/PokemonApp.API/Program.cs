@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using PokemonApp.API.Data;
+using PokemonApp.API.Filters;
 using PokemonApp.API.Interfaces;
 using PokemonApp.API.Options;
 using PokemonApp.API.Repositories;
@@ -17,7 +18,12 @@ builder.Services.Configure<JwtOptions>(
     builder.Configuration.GetSection(JwtOptions.SectionName));
 
 // Add services to the container
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    // Register filters globally
+    options.Filters.Add<PerformanceLoggingFilter>();
+    options.Filters.Add<CustomExceptionFilter>();
+});
 
 // Configure CORS
 builder.Services.AddCors(options =>
