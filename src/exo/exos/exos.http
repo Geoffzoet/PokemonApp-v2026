@@ -1,0 +1,6 @@
+@exos_HostAddress = http://localhost:5077
+
+GET {{exos_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
