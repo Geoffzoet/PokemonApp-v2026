@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PokemonApp.API.DTOs;
 using PokemonApp.API.Interfaces;
@@ -56,11 +57,14 @@ public class PokemonController : ControllerBase
     }
 
     /// <summary>
-    /// Creates a new Pokemon
+    /// Creates a new Pokemon (Admin only)
     /// </summary>
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(PokemonDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> Create([FromBody] CreatePokemonDto dto)
     {
         if (!ModelState.IsValid)
@@ -81,11 +85,14 @@ public class PokemonController : ControllerBase
     }
 
     /// <summary>
-    /// Updates an existing Pokemon
+    /// Updates an existing Pokemon (Admin only)
     /// </summary>
     [HttpPut("{id}")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(PokemonDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(int id, [FromBody] UpdatePokemonDto dto)
     {
@@ -113,10 +120,13 @@ public class PokemonController : ControllerBase
     }
 
     /// <summary>
-    /// Deletes a Pokemon
+    /// Deletes a Pokemon (Admin only)
     /// </summary>
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)
     {
