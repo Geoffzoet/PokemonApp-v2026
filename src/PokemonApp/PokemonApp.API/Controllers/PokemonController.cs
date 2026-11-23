@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using PokemonApp.API.DTOs;
+using PokemonApp.API.Interfaces;
 
 namespace PokemonApp.API.Controllers;
 
@@ -6,77 +8,125 @@ namespace PokemonApp.API.Controllers;
 [Route("api/[controller]")]
 public class PokemonController : ControllerBase
 {
+    private readonly IPokemonService _pokemonService;
+    private readonly ILogger<PokemonController> _logger;
+
+    public PokemonController(IPokemonService pokemonService, ILogger<PokemonController> logger)
+    {
+        _pokemonService = pokemonService;
+        _logger = logger;
+    }
+
     /// <summary>
-    /// Get all Pokemon - Returns 200 OK
+    /// Retrieves all Pokemon
     /// </summary>
     [HttpGet]
-    public IActionResult GetAll()
+    [ProducesResponseType(typeof(IEnumerable<PokemonDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetAll()
     {
-        // TODO: Will implement with database later
-        var pokemon = new[] { new { id = 1, name = "Pikachu" } };
-        return Ok(pokemon);  // 200 OK
+        try
+        {
+            var pokemon = await _pokemonService.GetAllAsync();
+            return Ok(pokemon);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching all Pokemon");
+            return StatusCode(500, new { message = "An error occurred while fetching Pokemon" });
+        }
     }
 
     /// <summary>
-    /// Get Pokemon by ID - Returns 200 OK or 404 Not Found
+    /// Retrieves a specific Pokemon by ID
     /// </summary>
     [HttpGet("{id}")]
-    public IActionResult GetById(int id)
+    [ProducesResponseType(typeof(PokemonDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetById(int id)
     {
-        // TODO: Will implement with database later
-        // Simulate not found for demonstration
-        if (id > 100)
+        var pokemon = await _pokemonService.GetByIdAsync(id);
+
+        if (pokemon == null)
         {
-            return NotFound(new { message = $"Pokémon avec l'ID {id} introuvable" });  // 404 Not Found
+            return NotFound(new { message = $"Pokémon avec l'ID {id} introuvable" });
         }
 
-        var pokemon = new { id, name = "Pikachu" };
-        return Ok(pokemon);  // 200 OK
+        return Ok(pokemon);
     }
 
     /// <summary>
-    /// Create new Pokemon - Returns 201 Created with Location header
+    /// Creates a new Pokemon
     /// </summary>
     [HttpPost]
-    public IActionResult Create()
+    [ProducesResponseType(typeof(PokemonDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Create([FromBody] CreatePokemonDto dto)
     {
-        // TODO: Will implement with database and DTO later
-        var newPokemon = new { id = 1, name = "Pikachu" };
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
 
-        // 201 Created with Location header pointing to the new resource
-        return CreatedAtAction(nameof(GetById), new { id = newPokemon.id }, newPokemon);
+        try
+        {
+            var created = await _pokemonService.CreateAsync(dto);
+            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating Pokemon");
+            return StatusCode(500, new { message = "An error occurred while creating Pokemon" });
+        }
     }
 
     /// <summary>
-    /// Update Pokemon - Returns 200 OK or 404 Not Found
+    /// Updates an existing Pokemon
     /// </summary>
     [HttpPut("{id}")]
-    public IActionResult Update(int id)
+    [ProducesResponseType(typeof(PokemonDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Update(int id, [FromBody] UpdatePokemonDto dto)
     {
-        // TODO: Will implement with database and DTO later
-        // Simulate not found for demonstration
-        if (id > 100)
+        if (!ModelState.IsValid)
         {
-            return NotFound(new { message = $"Pokémon avec l'ID {id} introuvable" });  // 404 Not Found
+            return BadRequest(ModelState);
         }
 
-        var updatedPokemon = new { id, name = "Pikachu Updated" };
-        return Ok(updatedPokemon);  // 200 OK
+        try
+        {
+            var updated = await _pokemonService.UpdateAsync(id, dto);
+
+            if (updated == null)
+            {
+                return NotFound(new { message = $"Pokémon avec l'ID {id} introuvable" });
+            }
+
+            return Ok(updated);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating Pokemon with ID {Id}", id);
+            return StatusCode(500, new { message = "An error occurred while updating Pokemon" });
+        }
     }
 
     /// <summary>
-    /// Delete Pokemon - Returns 204 No Content or 404 Not Found
+    /// Deletes a Pokemon
     /// </summary>
     [HttpDelete("{id}")]
-    public IActionResult Delete(int id)
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Delete(int id)
     {
-        // TODO: Will implement with database later
-        // Simulate not found for demonstration
-        if (id > 100)
+        var deleted = await _pokemonService.DeleteAsync(id);
+
+        if (!deleted)
         {
-            return NotFound(new { message = $"Pokémon avec l'ID {id} introuvable" });  // 404 Not Found
+            return NotFound(new { message = $"Pokémon avec l'ID {id} introuvable" });
         }
 
-        return NoContent();  // 204 No Content (successful deletion, no body)
+        return NoContent();
     }
 }
