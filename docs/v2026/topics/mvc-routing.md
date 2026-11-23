@@ -1865,7 +1865,373 @@ public class BrowseController : Controller
 
 ## 10. Common Patterns & Best Practices
 
-[Content to be added]
+### Recommended Patterns
+
+#### Pattern 1: Consistent Route Structure
+
+**Description:** Keep your URL patterns consistent across the application.
+
+**Example:**
+```csharp
+// All resource actions follow the same pattern
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+```
+
+**Benefits:**
+- Users know what to expect
+- Easier to remember URLs
+- Simpler maintenance
+- Cleaner codebase
+
+#### Pattern 2: Specific Routes Before General Routes
+
+**Description:** Define more specific routes before catch-all routes.
+
+**Example:**
+```csharp
+// GOOD: Specific before general
+app.MapControllerRoute(
+    name: "admin",
+    pattern: "admin/{action=Dashboard}",
+    defaults: new { controller = "Admin" });
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+
+// BAD: General before specific (admin route will never match!)
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.MapControllerRoute(
+    name: "admin",
+    pattern: "admin/{action=Dashboard}",
+    defaults: new { controller = "Admin" });
+```
+
+**Why this matters:** Routes are evaluated in order. The first match wins!
+
+#### Pattern 3: Use Route Constraints for Type Safety
+
+**Description:** Add constraints to ensure parameters have the expected type.
+
+**Example:**
+```csharp
+// GOOD: Constrained route
+[Route("pokemon/{id:int}")]
+public IActionResult Details(int id) { }
+
+// BAD: No constraint - "abc" would match and cause an error
+[Route("pokemon/{id}")]
+public IActionResult Details(int id) { }
+```
+
+**Benefits:**
+- Prevents type conversion errors
+- More precise routing
+- Better error messages
+- Improved security
+
+#### Pattern 4: Named Routes for URL Generation
+
+**Description:** Give routes names so you can reference them in views.
+
+**Example:**
+```csharp
+// Define named route
+app.MapControllerRoute(
+    name: "pokemon-details",
+    pattern: "pokemon/{id:int}",
+    defaults: new { controller = "Pokemon", action = "Details" });
+
+// Use in view
+@Html.RouteLink("View Pokemon", "pokemon-details", new { id = 25 })
+```
+
+**Benefits:**
+- Change URL patterns without breaking views
+- Self-documenting code
+- Easier refactoring
+
+#### Pattern 5: Separate API and MVC Routes
+
+**Description:** Keep API routes distinct from MVC page routes.
+
+**Example:**
+```csharp
+// API routes with /api prefix
+[Route("api/[controller]")]
+[ApiController]
+public class PokemonApiController : ControllerBase { }
+
+// MVC routes without /api
+public class PokemonController : Controller { }
+```
+
+**Benefits:**
+- Clear separation of concerns
+- Easier to understand
+- Different routes for different purposes
+
+### Do's and Don'ts
+
+#### Do's
+
+**DO: Use lowercase URLs**
+```csharp
+// GOOD: lowercase URLs are more readable
+[Route("pokemon/details/{id}")]
+
+// AVOID: Mixed case in URLs
+[Route("Pokemon/Details/{id}")]
+```
+
+**DO: Use hyphens to separate words**
+```csharp
+// GOOD: Hyphenated
+[Route("pokemon-details/{id}")]
+
+// AVOID: Underscores or camelCase
+[Route("pokemon_details/{id}")]
+[Route("pokemonDetails/{id}")]
+```
+
+**DO: Keep URLs short and meaningful**
+```csharp
+// GOOD: Short and clear
+/pokemon/25
+/pokemon/search?type=fire
+
+// AVOID: Long, nested URLs
+/application/data/pokemon/information/details/id/25
+```
+
+**DO: Use plural nouns for collections**
+```csharp
+// GOOD
+/pokemon         // List of Pokemon
+/trainers        // List of trainers
+
+// AVOID
+/pokemon-list
+/all-trainers
+```
+
+**DO: Generate URLs dynamically**
+```cshtml
+<!-- GOOD: Generated URL -->
+<a asp-controller="Pokemon" asp-action="Details" asp-route-id="@model.Id">
+
+<!-- AVOID: Hardcoded URL -->
+<a href="/Pokemon/Details/@model.Id">
+```
+
+#### Don'ts
+
+**DON'T: Include file extensions**
+```csharp
+// BAD: Don't do this
+[Route("pokemon.html")]
+
+// GOOD: Clean URLs
+[Route("pokemon")]
+```
+
+**DON'T: Use query strings when route parameters work better**
+```csharp
+// BAD
+/pokemon/details?id=25
+
+// GOOD
+/pokemon/details/25
+```
+
+**DON'T: Expose implementation details in URLs**
+```csharp
+// BAD: Exposes technology
+[Route("pokemon.aspx")]
+[Route("pokemon.php")]
+
+// GOOD: Technology-agnostic
+[Route("pokemon")]
+```
+
+**DON'T: Create ambiguous routes**
+```csharp
+// BAD: Ambiguous - is "fire" an action or an id?
+[Route("pokemon/{actionOrId}")]
+
+// GOOD: Clear and unambiguous
+[Route("pokemon/type/{typeName}")]
+[Route("pokemon/{id:int}")]
+```
+
+### Code Organization
+
+**Recommended project structure:**
+```
+PokemonMvcApp/
+├── Controllers/
+│   ├── HomeController.cs         (uses conventional routing)
+│   ├── PokemonController.cs      (uses conventional routing)
+│   └── Api/
+│       └── PokemonApiController.cs (uses attribute routing)
+├── Views/
+│   ├── Home/
+│   │   └── Index.cshtml
+│   └── Pokemon/
+│       ├── Index.cshtml
+│       ├── Details.cshtml
+│       └── Edit.cshtml
+└── Program.cs                    (routing configuration)
+```
+
+**Program.cs organization:**
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+
+// 1. Add services
+builder.Services.AddControllersWithViews();
+
+var app = builder.Build();
+
+// 2. Add middleware
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+app.UseRouting();
+app.UseAuthorization();
+
+// 3. Define routes (specific before general)
+app.MapControllerRoute(
+    name: "admin",
+    pattern: "admin/{action=Dashboard}",
+    defaults: new { controller = "Admin" });
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.MapControllers();  // Attribute routing
+
+app.Run();
+```
+
+### Performance Considerations
+
+**Performance tips:**
+
+1. **Use constraints to narrow matching** - Constraints help the routing system skip routes faster
+```csharp
+// Better performance - constraints help skip non-matching routes
+[Route("pokemon/{id:int}")]
+public IActionResult Details(int id) { }
+```
+
+2. **Don't create too many routes** - Each route adds overhead
+```csharp
+// AVOID: Too many specific routes
+app.MapControllerRoute("route1", "pokemon/list");
+app.MapControllerRoute("route2", "pokemon/details/{id}");
+app.MapControllerRoute("route3", "pokemon/create");
+// ... 50 more routes ...
+
+// BETTER: Use one flexible route
+app.MapControllerRoute("default", "{controller}/{action}/{id?}");
+```
+
+3. **Cache generated URLs** - If you generate the same URL many times, cache it
+```cshtml
+@{
+    // Cache URL in a variable if used multiple times
+    var detailsUrl = Url.Action("Details", "Pokemon", new { id = Model.Id });
+}
+<a href="@detailsUrl">View</a>
+<a href="@detailsUrl" class="btn">Button View</a>
+```
+
+**Common performance pitfalls:**
+- Too many routes with complex regex patterns
+- Not using constraints (forces type checking on every route)
+- Generating URLs in tight loops without caching
+
+### Security Best Practices
+
+1. **Always use constraints for IDs**
+```csharp
+// GOOD: Prevents SQL injection attempts via URL
+[Route("pokemon/{id:int}")]
+public IActionResult Details(int id) { }
+```
+
+2. **Don't expose internal IDs if not necessary**
+```csharp
+// Consider using GUIDs or slugs instead of sequential IDs
+[Route("pokemon/{slug}")]  // /pokemon/pikachu
+public IActionResult Details(string slug) { }
+```
+
+3. **Use HTTPS redirect**
+```csharp
+// In Program.cs
+app.UseHttpsRedirection();  // Always redirect HTTP to HTTPS
+```
+
+4. **Validate all route parameters**
+```csharp
+public IActionResult Details(int id)
+{
+    // Always validate, even with constraints
+    if (id <= 0)
+        return BadRequest("Invalid ID");
+
+    // Continue with action...
+    return View();
+}
+```
+
+### RESTful Routing Conventions
+
+If building RESTful routes, follow these conventions:
+
+| HTTP Method | URL | Action | Purpose |
+|-------------|-----|--------|---------|
+| GET | `/pokemon` | Index | List all |
+| GET | `/pokemon/5` | Details | View one |
+| GET | `/pokemon/create` | Create | Show create form |
+| POST | `/pokemon` | Create | Submit new |
+| GET | `/pokemon/5/edit` | Edit | Show edit form |
+| PUT/POST | `/pokemon/5` | Edit | Submit update |
+| DELETE/POST | `/pokemon/5` | Delete | Delete resource |
+
+**Implementation:**
+```csharp
+public class PokemonController : Controller
+{
+    [HttpGet]
+    public IActionResult Index() { }
+
+    [HttpGet("{id}")]
+    public IActionResult Details(int id) { }
+
+    [HttpGet("create")]
+    public IActionResult Create() { }
+
+    [HttpPost]
+    public IActionResult Create(Pokemon model) { }
+
+    [HttpGet("{id}/edit")]
+    public IActionResult Edit(int id) { }
+
+    [HttpPost("{id}")]
+    public IActionResult Edit(int id, Pokemon model) { }
+
+    [HttpPost("{id}/delete")]
+    public IActionResult Delete(int id) { }
+}
+```
 
 ---
 
