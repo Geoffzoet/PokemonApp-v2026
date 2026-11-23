@@ -1,0 +1,567 @@
+openapi: 3.0.3
+info:
+  title: Pokemon API
+  description: |
+    API REST pour gérer une collection de Pokémon.
+    
+    ## Authentification
+    Les endpoints marqués 🔒 nécessitent un token JWT Bearer dans le header `Authorization`.
+    
+    ## Formats de réponse
+    Toutes les réponses sont au format JSON avec camelCase.
+  version: 2.0.0
+  contact:
+    name: Pokemon App Support
+    email: support@pokemonapp.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://localhost:7000/api
+    description: Serveur de développement local
+  - url: https://api.pokemonapp.com/api
+    description: Serveur de production
+
+tags:
+  - name: Pokemon
+    description: Opérations CRUD sur les Pokémon
+  - name: Authentication
+    description: Authentification et autorisation (à implémenter)
+
+paths:
+  /pokemon:
+    get:
+      tags:
+        - Pokemon
+      summary: Récupérer tous les Pokémon
+      description: Retourne la liste complète de tous les Pokémon disponibles
+      operationId: getAllPokemon
+      responses:
+        '200':
+          description: Liste des Pokémon récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PokemonDto'
+              examples:
+                success:
+                  summary: Exemple de réponse réussie
+                  value:
+                    - id: 1
+                      name: Pikachu
+                      type: ELECTRIK
+                      attacks:
+                        - name: Éclair
+                          points: 55
+                        - name: Tonnerre
+                          points: 90
+                      defensePoints: 40
+                      healthPoints: 35
+                      rarityPercentage: 15.5
+                      imageURL: https://example.com/pikachu.png
+                    - id: 2
+                      name: Bulbizarre
+                      type: GRASS
+                      attacks:
+                        - name: Fouet Lianes
+                          points: 45
+                        - name: Lance-Soleil
+                          points: 120
+                      defensePoints: 49
+                      healthPoints: 45
+                      rarityPercentage: 12.3
+                      imageURL: https://example.com/bulbizarre.png
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags:
+        - Pokemon
+      summary: Créer un nouveau Pokémon
+      description: Crée un nouveau Pokémon (Admin uniquement) 🔒
+      operationId: createPokemon
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePokemonDto'
+            examples:
+              pikachu:
+                summary: Création de Pikachu
+                value:
+                  name: Pikachu
+                  type: electrik
+                  attacks:
+                    - name: Éclair
+                      points: 55
+                    - name: Tonnerre
+                      points: 90
+                  defensePoints: 40
+                  healthPoints: 35
+                  rarityPercentage: 15.5
+                  imageURL: https://example.com/pikachu.png
+      responses:
+        '201':
+          description: Pokémon créé avec succès
+          headers:
+            Location:
+              description: URL du Pokémon créé
+              schema:
+                type: string
+                example: /api/pokemon/1
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PokemonDto'
+        '400':
+          description: Données invalides
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+              examples:
+                validationError:
+                  summary: Erreur de validation
+                  value:
+                    type: https://tools.ietf.org/html/rfc7231#section-6.5.1
+                    title: One or more validation errors occurred.
+                    status: 400
+                    errors:
+                      Name:
+                        - Le nom est obligatoire
+                      Type:
+                        - Le type doit être l'un des suivants GRASS, FIRE, FLYING, WATER, ELECTRIK
+                      Attacks:
+                        - Au moins une attaque est requise
+        '401':
+          description: Non authentifié
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Accès refusé (rôle Admin requis)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /pokemon/{id}:
+    get:
+      tags:
+        - Pokemon
+      summary: Récupérer un Pokémon par ID
+      description: Retourne les détails d'un Pokémon spécifique
+      operationId: getPokemonById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID unique du Pokémon
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+          example: 1
+      responses:
+        '200':
+          description: Pokémon trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PokemonDto'
+        '404':
+          description: Pokémon non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: Pokémon avec l'ID 999 introuvable
+
+    put:
+      tags:
+        - Pokemon
+      summary: Mettre à jour un Pokémon
+      description: Met à jour les informations d'un Pokémon existant (Admin uniquement) 🔒
+      operationId: updatePokemon
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID du Pokémon à mettre à jour
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePokemonDto'
+            examples:
+              update:
+                summary: Mise à jour de Pikachu
+                value:
+                  name: Pikachu
+                  type: electrik
+                  attacks:
+                    - name: Éclair
+                      points: 55
+                    - name: Fatal-Foudre
+                      points: 110
+                  defensePoints: 50
+                  healthPoints: 35
+                  rarityPercentage: 18.5
+                  imageURL: https://example.com/pikachu-updated.png
+      responses:
+        '200':
+          description: Pokémon mis à jour avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PokemonDto'
+        '400':
+          description: Données invalides
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '401':
+          description: Non authentifié
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Accès refusé (rôle Admin requis)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Pokémon non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Pokemon
+      summary: Supprimer un Pokémon
+      description: Supprime définitivement un Pokémon (Admin uniquement) 🔒
+      operationId: deletePokemon
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID du Pokémon à supprimer
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+          example: 1
+      responses:
+        '204':
+          description: Pokémon supprimé avec succès (pas de contenu)
+        '401':
+          description: Non authentifié
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Accès refusé (rôle Admin requis)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Pokémon non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT Bearer token. Format: `Bearer {token}`
+        
+        Pour obtenir un token, utilisez l'endpoint d'authentification (à implémenter).
+
+  schemas:
+    PokemonType:
+      type: string
+      enum:
+        - GRASS
+        - FIRE
+        - FLYING
+        - WATER
+        - ELECTRIK
+      description: Type élémentaire du Pokémon
+      example: ELECTRIK
+
+    Attack:
+      type: object
+      description: Attaque d'un Pokémon
+      required:
+        - name
+        - points
+      properties:
+        name:
+          type: string
+          maxLength: 100
+          minLength: 1
+          description: Nom de l'attaque
+          example: Éclair
+        points:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 100
+          description: Points de dégâts de l'attaque
+          example: 55
+
+    PokemonDto:
+      type: object
+      description: Représentation complète d'un Pokémon
+      required:
+        - id
+        - name
+        - type
+        - attacks
+        - defensePoints
+        - healthPoints
+        - rarityPercentage
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Identifiant unique du Pokémon
+          example: 1
+          readOnly: true
+        name:
+          type: string
+          maxLength: 50
+          description: Nom du Pokémon
+          example: Pikachu
+        type:
+          $ref: '#/components/schemas/PokemonType'
+        attacks:
+          type: array
+          minItems: 1
+          description: Liste des attaques du Pokémon
+          items:
+            $ref: '#/components/schemas/Attack'
+          example:
+            - name: Éclair
+              points: 55
+            - name: Tonnerre
+              points: 90
+        defensePoints:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 100
+          description: Points de défense
+          example: 40
+        healthPoints:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 100
+          description: Points de vie
+          example: 35
+        rarityPercentage:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 100
+          description: Pourcentage de rareté (0 = commun, 100 = légendaire)
+          example: 15.5
+        imageURL:
+          type: string
+          format: uri
+          nullable: true
+          description: URL de l'image du Pokémon
+          example: https://example.com/pokemon/pikachu.png
+
+    CreatePokemonDto:
+      type: object
+      description: Données pour créer un nouveau Pokémon
+      required:
+        - name
+        - type
+        - attacks
+        - defensePoints
+        - healthPoints
+        - rarityPercentage
+      properties:
+        name:
+          type: string
+          maxLength: 50
+          minLength: 1
+          description: Nom du Pokémon
+          example: Pikachu
+        type:
+          $ref: '#/components/schemas/PokemonType'
+        attacks:
+          type: array
+          minItems: 1
+          description: Liste des attaques du Pokémon (minimum 1)
+          items:
+            $ref: '#/components/schemas/Attack'
+          example:
+            - name: Éclair
+              points: 55
+            - name: Tonnerre
+              points: 90
+        defensePoints:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 100
+          description: Points de défense
+          example: 40
+        healthPoints:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 100
+          description: Points de vie
+          example: 35
+        rarityPercentage:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 100
+          description: Pourcentage de rareté
+          example: 15.5
+        imageURL:
+          type: string
+          format: uri
+          nullable: true
+          description: URL de l'image du Pokémon
+          example: https://example.com/pokemon/pikachu.png
+
+    UpdatePokemonDto:
+      type: object
+      description: Données pour mettre à jour un Pokémon existant
+      required:
+        - name
+        - type
+        - attacks
+        - defensePoints
+        - healthPoints
+        - rarityPercentage
+      properties:
+        name:
+          type: string
+          maxLength: 50
+          minLength: 1
+          description: Nom du Pokémon
+          example: Pikachu
+        type:
+          $ref: '#/components/schemas/PokemonType'
+        attacks:
+          type: array
+          minItems: 1
+          description: Liste des attaques du Pokémon (minimum 1)
+          items:
+            $ref: '#/components/schemas/Attack'
+          example:
+            - name: Éclair
+              points: 55
+            - name: Fatal-Foudre
+              points: 110
+        defensePoints:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 100
+          description: Points de défense
+          example: 50
+        healthPoints:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 100
+          description: Points de vie
+          example: 35
+        rarityPercentage:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 100
+          description: Pourcentage de rareté
+          example: 18.5
+        imageURL:
+          type: string
+          format: uri
+          nullable: true
+          description: URL de l'image du Pokémon
+          example: https://example.com/pokemon/pikachu-updated.png
+
+    ErrorResponse:
+      type: object
+      description: Réponse d'erreur standard
+      properties:
+        message:
+          type: string
+          description: Message d'erreur descriptif
+          example: Pokémon avec l'ID 999 introuvable
+        statusCode:
+          type: integer
+          format: int32
+          description: Code de statut HTTP
+          example: 404
+
+    ValidationErrorResponse:
+      type: object
+      description: Réponse d'erreur de validation
+      properties:
+        type:
+          type: string
+          example: https://tools.ietf.org/html/rfc7231#section-6.5.1
+        title:
+          type: string
+          example: One or more validation errors occurred.
+        status:
+          type: integer
+          format: int32
+          example: 400
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          example:
+            Name:
+              - Le nom est obligatoire
+            Type:
+              - Le type doit être l'un des suivants GRASS, FIRE, FLYING, WATER, ELECTRIK
+            Attacks:
+              - Au moins une attaque est requise
