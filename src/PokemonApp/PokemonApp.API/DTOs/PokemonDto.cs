@@ -10,4 +10,5 @@ public class PokemonDto
     public int HealthPoints { get; set; }
     public double RarityPercentage { get; set; }
     public string? ImageURL { get; set; }
+    public bool IsPartOfTeam { get; set; } = false; // Client-side managed property
 }

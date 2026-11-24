@@ -2,9 +2,22 @@ namespace PokemonApp.API.Models;
 
 public enum PokemonType
 {
-    GRASS,
+    NORMAL,
     FIRE,
-    FLYING,
     WATER,
-    ELECTRIK
+    GRASS,
+    ELECTRIC,
+    ICE,
+    FIGHTING,
+    POISON,
+    GROUND,
+    FLYING,
+    PSYCHIC,
+    BUG,
+    ROCK,
+    GHOST,
+    DRAGON,
+    DARK,
+    STEEL,
+    FAIRY
 }

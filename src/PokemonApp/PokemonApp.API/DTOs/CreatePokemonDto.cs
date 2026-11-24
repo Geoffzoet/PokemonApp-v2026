@@ -9,8 +9,8 @@ public class CreatePokemonDto
     public string Name { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Le type est obligatoire")]
-    [RegularExpression("GRASS|FIRE|FLYING|WATER|ELECTRIK",
-        ErrorMessage = "Le type doit être l'un des suivants: GRASS, FIRE, FLYING, WATER, ELECTRIK")]
+    [RegularExpression("NORMAL|FIRE|WATER|GRASS|ELECTRIC|ICE|FIGHTING|POISON|GROUND|FLYING|PSYCHIC|BUG|ROCK|GHOST|DRAGON|DARK|STEEL|FAIRY",
+        ErrorMessage = "Le type doit être l'un des suivants: NORMAL, FIRE, WATER, GRASS, ELECTRIC, ICE, FIGHTING, POISON, GROUND, FLYING, PSYCHIC, BUG, ROCK, GHOST, DRAGON, DARK, STEEL, FAIRY")]
     public string Type { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Au moins une attaque est requise")]
