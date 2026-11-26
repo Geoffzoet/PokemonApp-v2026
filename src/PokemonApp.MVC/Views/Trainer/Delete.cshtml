@@ -1,0 +1,55 @@
+@model PokemonApp.MVC.Models.Trainer
+
+@{
+    ViewData["Title"] = $"Supprimer - {Model.Name}";
+}
+
+<h1><i class="bi bi-trash"></i> Supprimer le Dresseur</h1>
+
+<div class="alert alert-danger">
+    <h4><i class="bi bi-exclamation-triangle"></i> Attention !</h4>
+    <p>Êtes-vous sûr de vouloir supprimer ce dresseur ?</p>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        Informations du dresseur
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">Nom:</dt>
+            <dd class="col-sm-9"><strong>@Model.Name</strong></dd>
+
+            <dt class="col-sm-3">Ville:</dt>
+            <dd class="col-sm-9">@Model.Town</dd>
+
+            <dt class="col-sm-3">Badges:</dt>
+            <dd class="col-sm-9">
+                <span class="badge bg-warning text-dark">@Model.BadgeCount</span>
+            </dd>
+
+            <dt class="col-sm-3">Pokémon:</dt>
+            <dd class="col-sm-9">
+                <span class="badge bg-primary">@Model.Team.Count</span>
+            </dd>
+        </dl>
+
+        @if (Model.Team.Any())
+        {
+            <div class="alert alert-warning mt-3">
+                <i class="bi bi-info-circle"></i>
+                <strong>Remarque:</strong> La suppression de ce dresseur supprimera également tous ses Pokémon capturés (@Model.Team.Count Pokémon).
+            </div>
+        }
+    </div>
+</div>
+
+<form asp-action="Delete" method="post">
+    <input type="hidden" asp-for="Id" />
+    <button type="submit" class="btn btn-danger">
+        <i class="bi bi-trash"></i> Confirmer la suppression
+    </button>
+    <a asp-action="Index" class="btn btn-secondary">
+        <i class="bi bi-x-circle"></i> Annuler
+    </a>
+</form>

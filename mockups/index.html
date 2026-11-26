@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DEMO - Navigation Maquettes</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="css/site.css" rel="stylesheet">
+</head>
+<body>
+    <!-- LAYOUT START -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.html">
+                <i class="bi bi-nintendo-switch"></i> Dresseurs & Captures
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="trainer-index.html">
+                            <i class="bi bi-person-badge"></i> Dresseurs
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <!-- LAYOUT END -->
+
+    <div class="container">
+        <div class="text-center mb-4">
+            <h1 class="display-3"><i class="bi bi-palette-fill"></i> DEMO ONLY</h1>
+            <p class="lead">Navigation des maquettes HTML/CSS statiques</p>
+            <div class="alert alert-warning">
+                <strong><i class="bi bi-exclamation-triangle-fill"></i> Attention :</strong> Cette page est uniquement pour tester les maquettes. Elle ne sera pas convertie en Razor.
+            </div>
+        </div>
+
+        <div class="pokeball"></div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4 class="mb-0"><i class="bi bi-people-fill"></i> Gestion des Dresseurs</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a href="trainer-index.html" class="btn btn-primary btn-lg">
+                                <i class="bi bi-list-ul"></i> 1. Liste des dresseurs
+                            </a>
+                            <a href="trainer-details.html" class="btn btn-primary btn-lg">
+                                <i class="bi bi-eye"></i> 2. Détails d'un dresseur
+                            </a>
+                            <a href="trainer-create.html" class="btn btn-success btn-lg">
+                                <i class="bi bi-plus-circle"></i> 3. Créer un dresseur
+                            </a>
+                            <a href="trainer-edit.html" class="btn btn-warning btn-lg">
+                                <i class="bi bi-pencil"></i> 4. Modifier un dresseur
+                            </a>
+                            <a href="trainer-delete.html" class="btn btn-danger btn-lg">
+                                <i class="bi bi-trash"></i> 5. Supprimer un dresseur
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4 class="mb-0"><i class="bi bi-compass-fill"></i> Aventure & Capture</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a href="encounter-wild.html" class="btn btn-primary btn-lg">
+                                <i class="bi bi-exclamation-diamond"></i> 6. Rencontre sauvage
+                            </a>
+                        </div>
+
+                        <div class="mt-4">
+                            <h5><i class="bi bi-info-circle"></i> Informations</h5>
+                            <ul class="list-group">
+                                <li class="list-group-item">
+                                    <i class="bi bi-check-circle text-success"></i> Bootstrap 5 responsive
+                                </li>
+                                <li class="list-group-item">
+                                    <i class="bi bi-check-circle text-success"></i> Poké Ball en CSS pur
+                                </li>
+                                <li class="list-group-item">
+                                    <i class="bi bi-check-circle text-success"></i> SVG placeholders
+                                </li>
+                                <li class="list-group-item">
+                                    <i class="bi bi-check-circle text-success"></i> Toastr notifications
+                                </li>
+                                <li class="list-group-item">
+                                    <i class="bi bi-check-circle text-success"></i> Commentaires pour Razor
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0"><i class="bi bi-code-slash"></i> Notes de Conversion Razor</h4>
+            </div>
+            <div class="card-body">
+                <h5>Éléments marqués dans les maquettes :</h5>
+                <ul>
+                    <li><code>&lt;!-- LAYOUT START --&gt;</code> et <code>&lt;!-- LAYOUT END --&gt;</code> : Navbar et footer à extraire vers _Layout.cshtml</li>
+                    <li><code>&lt;!-- PARTIAL: _PokemonCard --&gt;</code> : Carte Pokémon à extraire vers une vue partielle</li>
+                    <li><code>&lt;!-- PARTIAL: _TrainerForm --&gt;</code> : Formulaire dresseur à extraire vers une vue partielle</li>
+                    <li><code>&lt;!-- FOREACH --&gt;</code> : Élément répété à convertir en boucle @foreach en Razor</li>
+                    <li><code>&lt;!-- DEMO ONLY, à supprimer --&gt;</code> : Blocs de démonstration à retirer en production</li>
+                </ul>
+
+                <h5 class="mt-4">Noms des champs de formulaire :</h5>
+                <ul>
+                    <li><strong>Name</strong> : Nom du dresseur</li>
+                    <li><strong>Town</strong> : Ville d'origine</li>
+                    <li><strong>BadgeCount</strong> : Nombre de badges</li>
+                    <li><strong>Id</strong> : Identifiant (hidden field)</li>
+                    <li><strong>Ball</strong> : Type de Poké Ball (PokeBall, SuperBall, MasterBall)</li>
+                    <li><strong>trainerId</strong> : ID du dresseur (capture)</li>
+                    <li><strong>pokemonId</strong> : ID du Pokémon (capture)</li>
+                </ul>
+
+                <h5 class="mt-4">Classes CSS de validation :</h5>
+                <ul>
+                    <li><code>.input-validation-error</code> : Appliqué automatiquement aux champs en erreur</li>
+                    <li><code>.text-danger</code> : Pour les messages d'erreur</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- LAYOUT START -->
+    <footer>
+        <p class="mb-0">&copy; 2026 Dresseurs & Captures - Formation .NET MVC</p>
+    </footer>
+    <!-- LAYOUT END -->
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

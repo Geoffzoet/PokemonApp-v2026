@@ -1,0 +1,88 @@
+@model PokemonApp.MVC.Models.Trainer
+
+@{
+    ViewData["Title"] = $"Détails - {Model.Name}";
+}
+
+<h1><i class="bi bi-person-badge"></i> Détails du Dresseur</h1>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h4 class="mb-0">@Model.Name</h4>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="stats-section">
+                    <div class="stat-item">
+                        <span class="stat-label"><i class="bi bi-geo-alt"></i> Ville:</span>
+                        <span class="stat-value">@Model.Town</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label"><i class="bi bi-trophy"></i> Badges:</span>
+                        <span class="stat-value">
+                            <span class="badge bg-warning text-dark">@Model.BadgeCount</span>
+                        </span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label"><i class="bi bi-collection"></i> Pokémon capturés:</span>
+                        <span class="stat-value">
+                            <span class="badge bg-primary">@Model.Team.Count</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2><i class="bi bi-collection"></i> Équipe Pokémon</h2>
+
+@if (Model.Team.Any())
+{
+    <div class="pokemon-grid">
+        @foreach (var caughtPokemon in Model.Team)
+        {
+            <div class="pokemon-card fade-in">
+                <img src="@caughtPokemon.Pokemon.ImageURL" alt="@caughtPokemon.Pokemon.Name">
+                <h5>@caughtPokemon.Pokemon.Name</h5>
+                @if (!string.IsNullOrEmpty(caughtPokemon.Nickname))
+                {
+                    <p class="text-muted"><i>"@caughtPokemon.Nickname"</i></p>
+                }
+                <span class="type-badge type-@caughtPokemon.Pokemon.Type.ToString().ToLower()">@caughtPokemon.Pokemon.Type</span>
+                <p class="capture-date">
+                    <i class="bi bi-calendar"></i> Capturé le @caughtPokemon.CaughtAt.ToString("dd/MM/yyyy")
+                </p>
+                <p class="text-muted">
+                    <i class="bi bi-circle-fill"></i> @caughtPokemon.BallUsed
+                </p>
+                <div class="attacks-list">
+                    <strong>Attaques:</strong>
+                    @foreach (var attack in caughtPokemon.Pokemon.Attacks)
+                    {
+                        <div class="attack-item">
+                            <span class="attack-name">@attack.Name</span>
+                            <span class="attack-points">@attack.Points pts</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> Ce dresseur n'a pas encore capturé de Pokémon.
+    </div>
+}
+
+<div class="mt-4">
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
+        <i class="bi bi-pencil"></i> Modifier
+    </a>
+    <a asp-action="Index" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Retour à la liste
+    </a>
+</div>

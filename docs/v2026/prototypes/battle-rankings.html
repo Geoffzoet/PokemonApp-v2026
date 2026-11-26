@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokemon Battle Rankings</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .main-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #6c757d;
+            font-size: 1.1rem;
+        }
+
+        .create-fight-btn {
+            margin-bottom: 20px;
+        }
+
+        .pokemon-table {
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .pokemon-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .pokemon-table thead th {
+            border: none;
+            padding: 15px;
+            font-weight: 600;
+        }
+
+        .pokemon-table tbody tr {
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .pokemon-table tbody tr:hover {
+            background-color: #f8f9fa;
+            transform: scale(1.01);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .pokemon-table tbody td {
+            padding: 15px;
+            vertical-align: middle;
+        }
+
+        .rank-badge {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            line-height: 40px;
+            text-align: center;
+            border-radius: 50%;
+            font-weight: bold;
+            color: white;
+        }
+
+        .rank-1 {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            font-size: 1.2rem;
+        }
+
+        .rank-2 {
+            background: linear-gradient(135deg, #C0C0C0, #808080);
+        }
+
+        .rank-3 {
+            background: linear-gradient(135deg, #CD7F32, #8B4513);
+        }
+
+        .rank-other {
+            background: linear-gradient(135deg, #6c757d, #495057);
+        }
+
+        .pokemon-sprite {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+        }
+
+        .pokemon-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #333;
+        }
+
+        .type-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .type-fire { background: #F08030; color: white; }
+        .type-water { background: #6890F0; color: white; }
+        .type-grass { background: #78C850; color: white; }
+        .type-electric { background: #F8D030; color: #333; }
+        .type-psychic { background: #F85888; color: white; }
+        .type-dragon { background: #7038F8; color: white; }
+        .type-ghost { background: #705898; color: white; }
+        .type-normal { background: #A8A878; color: white; }
+        .type-flying { background: #A890F0; color: white; }
+
+        .stats-col {
+            text-align: center;
+        }
+
+        .win-rate {
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+
+        .win-rate.high { color: #28a745; }
+        .win-rate.medium { color: #ffc107; }
+        .win-rate.low { color: #dc3545; }
+
+        .stats-small {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        .action-btn {
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .search-box {
+            margin-bottom: 20px;
+        }
+
+        .filter-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Header -->
+        <div class="header">
+            <h1><i class="bi bi-trophy-fill text-warning"></i> Pokemon Battle Rankings</h1>
+            <p>Top fighters ranked by victories</p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="d-flex justify-content-between align-items-center create-fight-btn">
+            <button class="btn btn-success btn-lg action-btn" onclick="window.location.href='battle-create-fight.html'">
+                <i class="bi bi-plus-circle"></i> Create New Fight
+            </button>
+            <div class="search-box">
+                <input type="search" class="form-control" placeholder="🔍 Search Pokemon..." style="width: 300px;">
+            </div>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="filter-section">
+            <div class="row align-items-center">
+                <div class="col-md-3">
+                    <label class="form-label mb-1"><strong>Filter by Type:</strong></label>
+                    <select class="form-select">
+                        <option selected>All Types</option>
+                        <option>Fire</option>
+                        <option>Water</option>
+                        <option>Grass</option>
+                        <option>Electric</option>
+                        <option>Psychic</option>
+                        <option>Dragon</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label mb-1"><strong>Min Win Rate:</strong></label>
+                    <select class="form-select">
+                        <option selected>Any</option>
+                        <option>50%+</option>
+                        <option>60%+</option>
+                        <option>75%+</option>
+                        <option>90%+</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label mb-1"><strong>Min Battles:</strong></label>
+                    <select class="form-select">
+                        <option selected>Any</option>
+                        <option>5+</option>
+                        <option>10+</option>
+                        <option>20+</option>
+                    </select>
+                </div>
+                <div class="col-md-3 text-end">
+                    <button class="btn btn-outline-secondary mt-4">
+                        <i class="bi bi-arrow-clockwise"></i> Reset Filters
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pokemon Rankings Table -->
+        <div class="table-responsive">
+            <table class="table table-hover pokemon-table">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">Rank</th>
+                        <th style="width: 100px;">Pokemon</th>
+                        <th>Name</th>
+                        <th style="width: 120px;">Type</th>
+                        <th class="text-center" style="width: 120px;">Battles</th>
+                        <th class="text-center" style="width: 100px;">Wins</th>
+                        <th class="text-center" style="width: 100px;">Losses</th>
+                        <th class="text-center" style="width: 120px;">Win Rate</th>
+                        <th class="text-center" style="width: 120px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Rank 1 - Mewtwo -->
+                    <tr onclick="window.location.href='battle-pokemon-details.html'">
+                        <td><span class="rank-badge rank-1">1</span></td>
+                        <td><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/150.png" class="pokemon-sprite" alt="Mewtwo"></td>
+                        <td><span class="pokemon-name">Mewtwo</span></td>
+                        <td><span class="type-badge type-psychic">Psychic</span></td>
+                        <td class="stats-col">
+                            <div class="fw-bold">28</div>
+                            <div class="stats-small">Total fights</div>
+                        </td>
+                        <td class="stats-col">
+                            <div class="text-success fw-bold">25</div>
+                        </td>
+                        <td class="stats-col">
+                            <div class="text-danger fw-bold">3</div>
+                        </td>
+                        <td class="stats-col">
+                            <div class="win-rate high">89.3%</div>
+                        </td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); window.location.href='battle-pokemon-details.html'">
+                                <i class="bi bi-eye"></i> View
+                            </button>
+                        </td>
+                    </tr>
+
+                    <!-- Rank 2 - Charizard -->
+                    <tr onclick="window.location.href='battle-pokemon-details.html'">
+                        <td><span class="rank-badge rank-2">2</span></td>
+                        <td><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png" class="pokemon-sprite" alt="Charizard"></td>
+                        <td><span class="pokemon-name">Charizard</span></td>
+                        <td><span class="type-badge type-fire">Fire</span></td>
+                        <td class="stats-col">
+                            <div class="fw-bold">24</div>
+                            <div class="stats-small">Total fights</div>
+                        </td>
+                        <td class="stats-col">
+                            <div class="text-success fw-bold">20</div>
+                        </td>
+                        <td class="stats-col">
+                            <div class="text-danger fw-bold">4</div>
+                        </td>
+                        <td class="stats-col">
+                            <div class="win-rate high">83.3%</div>
+                        </td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation();">
+                                <i class="bi bi-eye"></i> View
+                            </button>
+                        </td>
+                    </tr>
+
+                    <!-- Rank 3 - Dragonite -->
+                    <tr onclick="window.location.href='battle-pokemon-details.html'">
+                        <td><span class="rank-badge rank-3">3</span></td>
+                        <td><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/149.png" class="pokemon-sprite" alt="Dragonite"></td>
+                        <td><span class="pokemon-name">Dragonite</span></td>
+                        <td><span class="type-badge type-dragon">Dragon</span></td>
+                        <td class="stats-col">
+                            <div class="fw-bold">22</div>
+                            <div class="stats-small">Total fights</div>
+                        </td>
+                        <td class="stats-col">
+                            <div class="text-success fw-bold">18</div>
+                        </td>
+                        <td class="stats-col">
+                            <div class="text-danger fw-bold">4</div>
+                        </td>
+                        <td class="stats-col">
+                            <div class="win-rate high">81.8%</div>
+                        </td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation();">
+                                <i class="bi bi-eye"></i> View
+                            </button>
+                        </td>
+                    </tr>
+
+                    <!-- Rank 4 - Gyarados -->
+                    <tr onclick="window.location.href='battle-pokemon-details.html'">
+                        <td><span class="rank-badge rank-other">4</span></td>
+                        <td><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/130.png" class="pokemon-sprite" alt="Gyarados"></td>
+                        <td><span class="pokemon-name">Gyarados</span></td>
+                        <td><span class="type-badge type-water">Water</span></td>
+                        <td class="stats-col">
+                            <div class="fw-bold">19</div>
+                            <div class="stats-small">Total fights</div>
+                        </td>
+                        <td class="stats-col">
+                            <div class="text-success fw-bold">14</div>
+                        </td>
+                        <td class="stats-col">
+                            <div class="text-danger fw-bold">5</div>
+                        </td>
+                        <td class="stats-col">
+                            <div class="win-rate medium">73.7%</div>
+                        </td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation();">
+                                <i class="bi bi-eye"></i> View
+                            </button>
+                        </td>
+                    </tr>
+
+                    <!-- Rank 5 - Pikachu -->
+                    <tr onclick="window.location.href='battle-pokemon-details.html'">
+                        <td><span class="rank-badge rank-other">5</span></td>
+                        <td><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" class="pokemon-sprite" alt="Pikachu"></td>
+                        <td><span class="pokemon-name">Pikachu</span></td>
+                        <td><span class="type-badge type-electric">Electric</span></td>
+                        <td class="stats-col">
+                            <div class="fw-bold">18</div>
+                            <div class="stats-small">Total fights</div>
+                        </td>
+                        <td class="stats-col">
+                            <div class="text-success fw-bold">12</div>
+                        </td>
+                        <td class="stats-col">
+                            <div class="text-danger fw-bold">6</div>
+                        </td>
+                        <td class="stats-col">
+                            <div class="win-rate medium">66.7%</div>
+                        </td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation();">
+                                <i class="bi bi-eye"></i> View
+                            </button>
+                        </td>
+                    </tr>
+
+                    <!-- Rank 6 - Gengar -->
+                    <tr onclick="window.location.href='battle-pokemon-details.html'">
+                        <td><span class="rank-badge rank-other">6</span></td>
+                        <td><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/94.png" class="pokemon-sprite" alt="Gengar"></td>
+                        <td><span class="pokemon-name">Gengar</span></td>
+                        <td><span class="type-badge type-ghost">Ghost</span></td>
+                        <td class="stats-col">
+                            <div class="fw-bold">15</div>
+                            <div class="stats-small">Total fights</div>
+                        </td>
+                        <td class="stats-col">
+                            <div class="text-success fw-bold">9</div>
+                        </td>
+                        <td class="stats-col">
+                            <div class="text-danger fw-bold">6</div>
+                        </td>
+                        <td class="stats-col">
+                            <div class="win-rate medium">60.0%</div>
+                        </td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation();">
+                                <i class="bi bi-eye"></i> View
+                            </button>
+                        </td>
+                    </tr>
+
+                    <!-- Rank 7 - Bulbasaur -->
+                    <tr onclick="window.location.href='battle-pokemon-details.html'">
+                        <td><span class="rank-badge rank-other">7</span></td>
+                        <td><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png" class="pokemon-sprite" alt="Bulbasaur"></td>
+                        <td><span class="pokemon-name">Bulbasaur</span></td>
+                        <td><span class="type-badge type-grass">Grass</span></td>
+                        <td class="stats-col">
+                            <div class="fw-bold">12</div>
+                            <div class="stats-small">Total fights</div>
+                        </td>
+                        <td class="stats-col">
+                            <div class="text-success fw-bold">5</div>
+                        </td>
+                        <td class="stats-col">
+                            <div class="text-danger fw-bold">7</div>
+                        </td>
+                        <td class="stats-col">
+                            <div class="win-rate low">41.7%</div>
+                        </td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation();">
+                                <i class="bi bi-eye"></i> View
+                            </button>
+                        </td>
+                    </tr>
+
+                    <!-- Rank 8 - Squirtle -->
+                    <tr onclick="window.location.href='battle-pokemon-details.html'">
+                        <td><span class="rank-badge rank-other">8</span></td>
+                        <td><img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/7.png" class="pokemon-sprite" alt="Squirtle"></td>
+                        <td><span class="pokemon-name">Squirtle</span></td>
+                        <td><span class="type-badge type-water">Water</span></td>
+                        <td class="stats-col">
+                            <div class="fw-bold">10</div>
+                            <div class="stats-small">Total fights</div>
+                        </td>
+                        <td class="stats-col">
+                            <div class="text-success fw-bold">4</div>
+                        </td>
+                        <td class="stats-col">
+                            <div class="text-danger fw-bold">6</div>
+                        </td>
+                        <td class="stats-col">
+                            <div class="win-rate low">40.0%</div>
+                        </td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation();">
+                                <i class="bi bi-eye"></i> View
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <nav aria-label="Rankings pagination" class="mt-4">
+            <ul class="pagination justify-content-center">
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" tabindex="-1">Previous</a>
+                </li>
+                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                <li class="page-item">
+                    <a class="page-link" href="#">Next</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

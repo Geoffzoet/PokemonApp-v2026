@@ -1,0 +1,49 @@
+@model PokemonApp.MVC.Models.Trainer
+
+@{
+    ViewData["Title"] = "Nouveau Dresseur";
+}
+
+<h1><i class="bi bi-person-plus"></i> Nouveau Dresseur</h1>
+
+<div class="card">
+    <div class="card-header">
+        Créer un nouveau dresseur
+    </div>
+    <div class="card-body">
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="mb-3">
+                <label asp-for="Name" class="form-label"></label>
+                <input asp-for="Name" class="form-control" placeholder="Entrez le nom du dresseur" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Town" class="form-label"></label>
+                <input asp-for="Town" class="form-control" placeholder="Entrez la ville d'origine" />
+                <span asp-validation-for="Town" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="BadgeCount" class="form-label"></label>
+                <input asp-for="BadgeCount" class="form-control" type="number" min="0" max="8" />
+                <span asp-validation-for="BadgeCount" class="text-danger"></span>
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-check-circle"></i> Créer
+                </button>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="bi bi-x-circle"></i> Annuler
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

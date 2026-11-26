@@ -1,0 +1,472 @@
+/* === COULEURS GLOBALES === */
+:root {
+    --primary-red: #EE1515;
+    --primary-white: #FFFFFF;
+    --primary-yellow: #FFCB05;
+    --primary-blue: #3B4CCA;
+    --grass-green: #78C850;
+    --fire-red: #F08030;
+    --water-blue: #6890F0;
+    --electric-yellow: #F8D030;
+    --normal-gray: #A8A878;
+    --shadow: rgba(0, 0, 0, 0.15);
+}
+
+/* === GÉNÉRAL === */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding-bottom: 40px;
+}
+
+.container {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px var(--shadow);
+    padding: 30px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+/* === NAVBAR === */
+.navbar {
+    background: linear-gradient(90deg, var(--primary-red) 0%, var(--primary-blue) 100%) !important;
+    box-shadow: 0 4px 12px var(--shadow);
+}
+
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+    color: var(--primary-white) !important;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.navbar-brand:hover {
+    transform: scale(1.05);
+    transition: transform 0.2s;
+}
+
+.nav-link {
+    color: var(--primary-white) !important;
+    font-weight: 600;
+    padding: 8px 16px !important;
+    border-radius: 20px;
+    transition: background 0.3s;
+}
+
+.nav-link:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* === FOOTER === */
+footer {
+    background: linear-gradient(90deg, var(--primary-blue) 0%, var(--primary-red) 100%);
+    color: white;
+    text-align: center;
+    padding: 20px;
+    border-radius: 15px;
+    margin-top: 30px;
+    box-shadow: 0 -4px 12px var(--shadow);
+}
+
+/* === TITRES === */
+h1, h2, h3 {
+    color: #333;
+    font-weight: bold;
+}
+
+h1 {
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 3px solid var(--primary-red);
+}
+
+/* === BADGES DE TYPE === */
+.type-badge {
+    display: inline-block;
+    padding: 6px 15px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: white;
+    margin: 3px;
+}
+
+.type-fire {
+    background: var(--fire-red);
+}
+
+.type-water {
+    background: var(--water-blue);
+}
+
+.type-grass {
+    background: var(--grass-green);
+}
+
+.type-electric {
+    background: var(--electric-yellow);
+    color: #333;
+}
+
+.type-normal {
+    background: var(--normal-gray);
+}
+
+/* === CARTE POKÉMON === */
+.pokemon-card {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 5px 15px var(--shadow);
+    transition: transform 0.3s, box-shadow 0.3s;
+    height: 100%;
+    border: 3px solid transparent;
+}
+
+.pokemon-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px var(--shadow);
+    border-color: var(--primary-yellow);
+}
+
+.pokemon-card img {
+    width: 120px;
+    height: 120px;
+    object-fit: contain;
+    margin: 10px 0;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+}
+
+.pokemon-card h5 {
+    font-weight: bold;
+    color: #333;
+    margin-top: 10px;
+    margin-bottom: 8px;
+}
+
+.pokemon-card .capture-date {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-bottom: 10px;
+}
+
+.pokemon-card .attacks-list {
+    text-align: left;
+    margin-top: 15px;
+    font-size: 0.9rem;
+}
+
+.pokemon-card .attacks-list .attack-item {
+    background: white;
+    padding: 6px 10px;
+    border-radius: 8px;
+    margin-bottom: 5px;
+    border-left: 3px solid var(--primary-blue);
+}
+
+.pokemon-card .attacks-list .attack-name {
+    font-weight: 600;
+    color: #333;
+}
+
+.pokemon-card .attacks-list .attack-points {
+    float: right;
+    color: var(--primary-red);
+    font-weight: bold;
+}
+
+/* === GRILLE POKÉMON === */
+.pokemon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+/* === TABLEAUX === */
+.table {
+    box-shadow: 0 2px 10px var(--shadow);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.table thead {
+    background: linear-gradient(90deg, var(--primary-red) 0%, var(--primary-blue) 100%);
+    color: white;
+}
+
+.table thead th {
+    border: none;
+    padding: 15px;
+    font-weight: 600;
+}
+
+.table tbody tr {
+    transition: background 0.3s;
+}
+
+.table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.table tbody td {
+    padding: 12px 15px;
+    vertical-align: middle;
+}
+
+/* === BOUTONS === */
+.btn {
+    border-radius: 25px;
+    font-weight: 600;
+    padding: 10px 25px;
+    transition: all 0.3s;
+    box-shadow: 0 2px 8px var(--shadow);
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px var(--shadow);
+}
+
+.btn-primary {
+    background: linear-gradient(90deg, var(--primary-blue) 0%, #5a6fd8 100%);
+    border: none;
+}
+
+.btn-success {
+    background: linear-gradient(90deg, var(--grass-green) 0%, #68b345 100%);
+    border: none;
+}
+
+.btn-danger {
+    background: linear-gradient(90deg, var(--primary-red) 0%, #d91010 100%);
+    border: none;
+}
+
+.btn-warning {
+    background: linear-gradient(90deg, var(--primary-yellow) 0%, #e6b800 100%);
+    border: none;
+    color: #333;
+}
+
+.btn-secondary {
+    background: linear-gradient(90deg, #6c757d 0%, #5a6268 100%);
+    border: none;
+}
+
+.btn-sm {
+    padding: 6px 15px;
+    font-size: 0.875rem;
+}
+
+.btn-lg {
+    padding: 15px 40px;
+    font-size: 1.1rem;
+}
+
+/* === FORMULAIRES === */
+.form-control, .form-select {
+    border-radius: 10px;
+    border: 2px solid #dee2e6;
+    padding: 12px 15px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 0.2rem rgba(59, 76, 202, 0.25);
+}
+
+.form-label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.input-validation-error {
+    border-color: var(--primary-red) !important;
+    box-shadow: 0 0 0 0.2rem rgba(238, 21, 21, 0.25) !important;
+}
+
+.text-danger {
+    color: var(--primary-red);
+    font-size: 0.875rem;
+    margin-top: 5px;
+    display: block;
+}
+
+/* === SECTION CARTE === */
+.card {
+    border-radius: 15px;
+    border: none;
+    box-shadow: 0 5px 15px var(--shadow);
+    overflow: hidden;
+}
+
+.card-header {
+    background: linear-gradient(90deg, var(--primary-red) 0%, var(--primary-blue) 100%);
+    color: white;
+    font-weight: bold;
+    padding: 15px 20px;
+    border: none;
+}
+
+.card-body {
+    padding: 25px;
+}
+
+/* === POKÉBALL CSS === */
+.pokeball {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    position: relative;
+    background: linear-gradient(to bottom, var(--primary-red) 0%, var(--primary-red) 50%, white 50%, white 100%);
+    border: 5px solid #333;
+    margin: 20px auto;
+    box-shadow: 0 8px 20px var(--shadow);
+}
+
+.pokeball::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 50px;
+    height: 50px;
+    background: white;
+    border-radius: 50%;
+    border: 5px solid #333;
+    box-shadow: inset 0 0 0 8px white, inset 0 0 0 10px #333;
+}
+
+.pokeball::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 10px;
+    background: #333;
+    transform: translateY(-50%);
+}
+
+.pokeball-large {
+    width: 200px;
+    height: 200px;
+}
+
+.pokeball-large::before {
+    width: 70px;
+    height: 70px;
+}
+
+.pokeball-large::after {
+    height: 12px;
+}
+
+/* === ALERT BOXES === */
+.alert {
+    border-radius: 15px;
+    border: none;
+    padding: 20px;
+    box-shadow: 0 3px 10px var(--shadow);
+}
+
+.alert-info {
+    background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+    color: #0c5460;
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    color: #856404;
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    color: #721c24;
+}
+
+/* === BADGE === */
+.badge {
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+/* === SECTION STATISTIQUES === */
+.stats-section {
+    background: #f8f9fa;
+    border-radius: 15px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.stats-section .stat-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.stats-section .stat-item:last-child {
+    border-bottom: none;
+}
+
+.stats-section .stat-label {
+    font-weight: 600;
+    color: #6c757d;
+}
+
+.stats-section .stat-value {
+    font-weight: bold;
+    color: #333;
+}
+
+/* === ANIMATIONS === */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+    .pokemon-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .container {
+        padding: 15px;
+        margin-top: 10px;
+    }
+
+    h1 {
+        font-size: 1.75rem;
+    }
+
+    .table {
+        font-size: 0.875rem;
+    }
+
+    .btn {
+        padding: 8px 20px;
+        font-size: 0.9rem;
+    }
+}

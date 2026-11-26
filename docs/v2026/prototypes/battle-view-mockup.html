@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokemon Battle - Mockup</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Toastr CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .battle-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .pokemon-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .pokemon-card.player {
+            border: 3px solid #28a745;
+        }
+
+        .pokemon-card.opponent {
+            border: 3px solid #dc3545;
+        }
+
+        .pokemon-sprite {
+            width: 150px;
+            height: 150px;
+            object-fit: contain;
+            margin: 10px 0;
+            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.2));
+        }
+
+        .hp-bar-container {
+            background: #e9ecef;
+            border-radius: 10px;
+            height: 25px;
+            overflow: hidden;
+            border: 2px solid #495057;
+        }
+
+        .hp-bar {
+            height: 100%;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .hp-bar.high {
+            background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+        }
+
+        .hp-bar.medium {
+            background: linear-gradient(90deg, #ffc107 0%, #fd7e14 100%);
+        }
+
+        .hp-bar.low {
+            background: linear-gradient(90deg, #dc3545 0%, #c82333 100%);
+        }
+
+        .vs-badge {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #6c757d;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .attack-btn {
+            margin: 5px;
+            min-width: 150px;
+            padding: 15px;
+            font-size: 16px;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        .attack-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .battle-log {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 2px solid #dee2e6;
+        }
+
+        .log-entry {
+            padding: 8px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+        }
+
+        .log-entry.damage {
+            border-left-color: #dc3545;
+        }
+
+        .log-entry.info {
+            border-left-color: #17a2b8;
+        }
+
+        .turn-badge {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .stat-badge {
+            display: inline-block;
+            margin: 5px;
+            padding: 5px 10px;
+            background: #6c757d;
+            color: white;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .shake {
+            animation: shake 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .bounce-in {
+            animation: bounceIn 0.6s;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .jumbotron {
+            background: white;
+            padding: 3rem 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .result-screen {
+            text-align: center;
+            padding: 50px;
+        }
+
+        .winner-trophy {
+            font-size: 8rem;
+            animation: bounceIn 1s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Home Screen -->
+        <div id="homeScreen" class="battle-container text-center">
+            <div class="jumbotron">
+                <h1 class="display-3">⚔️ Pokemon Battle Arena</h1>
+                <p class="lead mt-3">Test your Pokemon in random battles!</p>
+                <hr class="my-4">
+                <p>Click the button below to start a random Pokemon battle</p>
+                <button class="btn btn-primary btn-lg mt-3" onclick="startRandomBattle()">
+                    🎲 Start Random Battle
+                </button>
+                <button class="btn btn-outline-secondary btn-lg mt-3 ms-2" onclick="showHistory()">
+                    📜 View Battle History
+                </button>
+            </div>
+        </div>
+
+        <!-- Battle Arena Screen -->
+        <div id="battleScreen" class="hidden">
+            <!-- Header -->
+            <div class="text-center mb-4">
+                <h1 class="text-white display-4">⚔️ Pokemon Battle Arena</h1>
+                <span class="turn-badge">Turn <span id="turnNumber">1</span></span>
+            </div>
+
+            <div class="battle-container">
+                <!-- Pokemon Display Row -->
+                <div class="row mb-4">
+                    <!-- Player Pokemon -->
+                    <div class="col-md-5">
+                        <div class="pokemon-card player bounce-in" id="playerCard">
+                            <h3 class="mb-3">Your Pokemon</h3>
+                            <img id="playerSprite" alt="Player Pokemon" class="pokemon-sprite">
+                            <h4 id="playerName">-</h4>
+                            <span class="badge" id="playerTypeBadge">-</span>
+
+                            <!-- HP Bar -->
+                            <div class="mt-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span><strong>HP:</strong></span>
+                                    <span id="playerHP">0 / 0</span>
+                                </div>
+                                <div class="hp-bar-container">
+                                    <div id="playerHPBar" class="hp-bar high" style="width: 100%">
+                                        100%
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Stats -->
+                            <div class="mt-3">
+                                <span class="stat-badge">⚔️ ATK: <span id="playerAttackStat">0</span></span>
+                                <span class="stat-badge">🛡️ DEF: <span id="playerDefense">0</span></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- VS Badge -->
+                    <div class="col-md-2 d-flex align-items-center justify-content-center">
+                        <div class="vs-badge">VS</div>
+                    </div>
+
+                    <!-- Opponent Pokemon -->
+                    <div class="col-md-5">
+                        <div class="pokemon-card opponent bounce-in" id="opponentCard">
+                            <h3 class="mb-3">Opponent</h3>
+                            <img id="opponentSprite" alt="Opponent Pokemon" class="pokemon-sprite">
+                            <h4 id="opponentName">-</h4>
+                            <span class="badge" id="opponentTypeBadge">-</span>
+
+                            <!-- HP Bar -->
+                            <div class="mt-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span><strong>HP:</strong></span>
+                                    <span id="opponentHP">0 / 0</span>
+                                </div>
+                                <div class="hp-bar-container">
+                                    <div id="opponentHPBar" class="hp-bar high" style="width: 100%">
+                                        100%
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Stats -->
+                            <div class="mt-3">
+                                <span class="stat-badge">⚔️ ATK: <span id="opponentAttackStat">0</span></span>
+                                <span class="stat-badge">🛡️ DEF: <span id="opponentDefense">0</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Attack Buttons / New Battle Button -->
+                <div class="row mb-4">
+                    <div class="col-12 text-center">
+                        <h4 class="mb-3" id="actionTitle">Choose Your Attack:</h4>
+                        <div id="attackButtons"></div>
+                        <div id="newBattleContainer" class="hidden">
+                            <button class="btn btn-success btn-lg" onclick="startRandomBattle()">
+                                🎲 Start New Battle
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Battle Log -->
+                <div class="row">
+                    <div class="col-12">
+                        <h4>Battle Log:</h4>
+                        <div class="battle-log" id="battleLog"></div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="row mt-4">
+                    <div class="col-12 text-center">
+                        <button class="btn btn-outline-secondary" onclick="showHome()">
+                            🏠 Home
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Battle History Section -->
+        <div class="battle-container mt-4 hidden" id="historySection">
+            <h2>Battle History</h2>
+            <table class="table table-striped mt-3">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Pokemon 1</th>
+                        <th>Pokemon 2</th>
+                        <th>Winner</th>
+                    </tr>
+                </thead>
+                <tbody id="historyTableBody">
+                    <tr>
+                        <td>2026-11-25 14:30</td>
+                        <td>Pikachu</td>
+                        <td>Charizard</td>
+                        <td><strong>Pikachu</strong></td>
+                    </tr>
+                    <tr>
+                        <td>2026-11-25 14:15</td>
+                        <td>Bulbasaur</td>
+                        <td>Squirtle</td>
+                        <td><strong>Squirtle</strong></td>
+                    </tr>
+                    <tr>
+                        <td>2026-11-25 14:00</td>
+                        <td>Mewtwo</td>
+                        <td>Mew</td>
+                        <td><strong>Mewtwo</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+            <button class="btn btn-primary" onclick="showHome()">
+                ← Back to Home
+            </button>
+        </div>
+    </div>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Toastr JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+    <script>
+        // Pokemon database (simulates DB with Pokemon from your database)
+        const pokemonDB = [
+            { id: 25, name: 'Pikachu', type: 'ELECTRIC', hp: 35, attack: 55, defense: 40, attacks: ['Thunderbolt', 'Quick Attack', 'Iron Tail', 'Electro Ball'], attackPowers: [90, 40, 100, 55] },
+            { id: 6, name: 'Charizard', type: 'FIRE', hp: 78, attack: 84, defense: 78, attacks: ['Flamethrower', 'Fire Blast', 'Dragon Claw', 'Fly'], attackPowers: [90, 110, 80, 90] },
+            { id: 1, name: 'Bulbasaur', type: 'GRASS', hp: 45, attack: 49, defense: 49, attacks: ['Vine Whip', 'Razor Leaf', 'Solar Beam', 'Tackle'], attackPowers: [45, 55, 120, 40] },
+            { id: 7, name: 'Squirtle', type: 'WATER', hp: 44, attack: 48, defense: 65, attacks: ['Water Gun', 'Hydro Pump', 'Bubble', 'Tackle'], attackPowers: [40, 110, 40, 40] },
+            { id: 150, name: 'Mewtwo', type: 'PSYCHIC', hp: 106, attack: 110, defense: 90, attacks: ['Psychic', 'Psystrike', 'Shadow Ball', 'Aura Sphere'], attackPowers: [90, 100, 80, 80] },
+            { id: 151, name: 'Mew', type: 'PSYCHIC', hp: 100, attack: 100, defense: 100, attacks: ['Psychic', 'Ancient Power', 'Swift', 'Metronome'], attackPowers: [90, 60, 60, 50] },
+            { id: 149, name: 'Dragonite', type: 'DRAGON', hp: 91, attack: 134, defense: 95, attacks: ['Dragon Claw', 'Outrage', 'Wing Attack', 'Hyper Beam'], attackPowers: [80, 120, 60, 150] },
+            { id: 94, name: 'Gengar', type: 'GHOST', hp: 60, attack: 65, defense: 60, attacks: ['Shadow Ball', 'Lick', 'Night Shade', 'Dream Eater'], attackPowers: [80, 30, 60, 100] },
+            { id: 143, name: 'Snorlax', type: 'NORMAL', hp: 160, attack: 110, defense: 65, attacks: ['Body Slam', 'Rest', 'Snore', 'Hyper Beam'], attackPowers: [85, 0, 50, 150] },
+            { id: 130, name: 'Gyarados', type: 'WATER', hp: 95, attack: 125, defense: 79, attacks: ['Hydro Pump', 'Dragon Rage', 'Bite', 'Hyper Beam'], attackPowers: [110, 60, 60, 150] }
+        ];
+
+        // Type colors
+        const typeColors = {
+            'ELECTRIC': 'bg-warning text-dark',
+            'FIRE': 'bg-danger text-white',
+            'WATER': 'bg-primary text-white',
+            'GRASS': 'bg-success text-white',
+            'PSYCHIC': 'bg-info text-dark',
+            'DRAGON': 'bg-secondary text-white',
+            'GHOST': 'bg-dark text-white',
+            'NORMAL': 'bg-light text-dark'
+        };
+
+        // Battle state
+        let battleState = {
+            turn: 1,
+            playerPokemon: null,
+            opponentPokemon: null,
+            playerHP: 0,
+            opponentHP: 0,
+            isFinished: false
+        };
+
+        // Battle history
+        let battleHistory = [];
+
+        // Configure Toastr
+        toastr.options = {
+            "closeButton": true,
+            "progressBar": true,
+            "positionClass": "toast-top-center",
+            "timeOut": "2000"
+        };
+
+        // Screen navigation
+        function showHome() {
+            document.getElementById('homeScreen').classList.remove('hidden');
+            document.getElementById('battleScreen').classList.add('hidden');
+            document.getElementById('resultScreen').classList.add('hidden');
+            document.getElementById('historySection').classList.add('hidden');
+        }
+
+        function showBattle() {
+            document.getElementById('homeScreen').classList.add('hidden');
+            document.getElementById('battleScreen').classList.remove('hidden');
+            document.getElementById('historySection').classList.add('hidden');
+        }
+
+        function showHistory() {
+            document.getElementById('homeScreen').classList.add('hidden');
+            document.getElementById('battleScreen').classList.add('hidden');
+            document.getElementById('resultScreen').classList.add('hidden');
+            document.getElementById('historySection').classList.remove('hidden');
+        }
+
+        // Start random battle
+        function startRandomBattle() {
+            // Pick 2 random Pokemon
+            const pokemon1 = pokemonDB[Math.floor(Math.random() * pokemonDB.length)];
+            let pokemon2 = pokemonDB[Math.floor(Math.random() * pokemonDB.length)];
+
+            // Make sure they're different
+            while (pokemon2.id === pokemon1.id) {
+                pokemon2 = pokemonDB[Math.floor(Math.random() * pokemonDB.length)];
+            }
+
+            // Initialize battle state
+            battleState = {
+                turn: 1,
+                playerPokemon: pokemon1,
+                opponentPokemon: pokemon2,
+                playerHP: pokemon1.hp,
+                opponentHP: pokemon2.hp,
+                isFinished: false
+            };
+
+            // Update UI
+            setupBattleUI(pokemon1, pokemon2);
+            showBattle();
+
+            toastr.success(`Battle started: ${pokemon1.name} vs ${pokemon2.name}!`);
+        }
+
+        // Setup battle UI
+        function setupBattleUI(player, opponent) {
+            // Player Pokemon
+            document.getElementById('playerSprite').src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${player.id}.png`;
+            document.getElementById('playerName').textContent = player.name;
+            document.getElementById('playerTypeBadge').textContent = player.type;
+            document.getElementById('playerTypeBadge').className = 'badge ' + typeColors[player.type];
+            document.getElementById('playerHP').textContent = `${player.hp} / ${player.hp}`;
+            document.getElementById('playerAttackStat').textContent = player.attack;
+            document.getElementById('playerDefense').textContent = player.defense;
+            updateHPBar(true);
+
+            // Opponent Pokemon
+            document.getElementById('opponentSprite').src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${opponent.id}.png`;
+            document.getElementById('opponentName').textContent = opponent.name;
+            document.getElementById('opponentTypeBadge').textContent = opponent.type;
+            document.getElementById('opponentTypeBadge').className = 'badge ' + typeColors[opponent.type];
+            document.getElementById('opponentHP').textContent = `${opponent.hp} / ${opponent.hp}`;
+            document.getElementById('opponentAttackStat').textContent = opponent.attack;
+            document.getElementById('opponentDefense').textContent = opponent.defense;
+            updateHPBar(false);
+
+            // Reset action section
+            document.getElementById('actionTitle').textContent = 'Choose Your Attack:';
+            document.getElementById('attackButtons').classList.remove('hidden');
+            document.getElementById('newBattleContainer').classList.add('hidden');
+
+            // Attack buttons
+            const attackButtonsDiv = document.getElementById('attackButtons');
+            attackButtonsDiv.innerHTML = '';
+            player.attacks.forEach((attack, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-primary attack-btn';
+                btn.onclick = () => executeAttack(index);
+                btn.innerHTML = `<strong>${attack}</strong><br/><small>Power: ${player.attackPowers[index]}</small>`;
+                attackButtonsDiv.appendChild(btn);
+            });
+
+            // Battle log
+            document.getElementById('battleLog').innerHTML = `
+                <div class="log-entry info">
+                    <strong>Battle Started!</strong> ${player.name} vs ${opponent.name}
+                </div>
+            `;
+
+            // Turn counter
+            document.getElementById('turnNumber').textContent = '1';
+        }
+
+        // Calculate damage
+        function calculateDamage(attackPower, attackerAttack, defenderDefense) {
+            const baseDamage = (attackPower + attackerAttack) - (defenderDefense / 2);
+            const randomFactor = 0.85 + (Math.random() * 0.3);
+            return Math.max(1, Math.floor(baseDamage * randomFactor));
+        }
+
+        // Update HP bar
+        function updateHPBar(isPlayer) {
+            const prefix = isPlayer ? 'player' : 'opponent';
+            const pokemon = isPlayer ? battleState.playerPokemon : battleState.opponentPokemon;
+            const currentHP = isPlayer ? battleState.playerHP : battleState.opponentHP;
+            const maxHP = pokemon.hp;
+            const percentage = (currentHP * 100) / maxHP;
+
+            const hpBar = document.getElementById(prefix + 'HPBar');
+            hpBar.style.width = percentage + '%';
+            hpBar.textContent = Math.floor(percentage) + '%';
+
+            hpBar.className = 'hp-bar';
+            if (percentage > 50) {
+                hpBar.classList.add('high');
+            } else if (percentage > 25) {
+                hpBar.classList.add('medium');
+            } else {
+                hpBar.classList.add('low');
+            }
+
+            document.getElementById(prefix + 'HP').textContent = `${currentHP} / ${maxHP}`;
+        }
+
+        // Add battle log
+        function addLog(message, type = 'info') {
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type} fade-in`;
+            logEntry.innerHTML = `<strong>Turn ${battleState.turn}:</strong> ${message}`;
+
+            const battleLog = document.getElementById('battleLog');
+            battleLog.appendChild(logEntry);
+            battleLog.scrollTop = battleLog.scrollHeight;
+        }
+
+        // Execute attack
+        function executeAttack(attackIndex) {
+            if (battleState.isFinished) {
+                toastr.warning('Battle is already finished!');
+                return;
+            }
+
+            const player = battleState.playerPokemon;
+            const opponent = battleState.opponentPokemon;
+            const attackName = player.attacks[attackIndex];
+            const attackPower = player.attackPowers[attackIndex];
+
+            // Player attacks
+            const damage = calculateDamage(attackPower, player.attack, opponent.defense);
+            battleState.opponentHP = Math.max(0, battleState.opponentHP - damage);
+
+            addLog(`${player.name} used ${attackName}! Dealt ${damage} damage to ${opponent.name}.`, 'damage');
+            toastr.info(`${attackName} hit for ${damage} damage!`);
+
+            document.getElementById('opponentCard').classList.add('shake');
+            setTimeout(() => document.getElementById('opponentCard').classList.remove('shake'), 300);
+
+            updateHPBar(false);
+
+            // Check if opponent fainted
+            if (battleState.opponentHP <= 0) {
+                setTimeout(() => endBattle(player.name), 500);
+                return;
+            }
+
+            // Opponent's turn
+            setTimeout(() => opponentAttack(), 1500);
+        }
+
+        // Opponent attack
+        function opponentAttack() {
+            const player = battleState.playerPokemon;
+            const opponent = battleState.opponentPokemon;
+            const attackIndex = Math.floor(Math.random() * opponent.attacks.length);
+            const attackName = opponent.attacks[attackIndex];
+            const attackPower = opponent.attackPowers[attackIndex];
+
+            const damage = calculateDamage(attackPower, opponent.attack, player.defense);
+            battleState.playerHP = Math.max(0, battleState.playerHP - damage);
+
+            addLog(`${opponent.name} used ${attackName}! Dealt ${damage} damage to ${player.name}.`, 'damage');
+            toastr.warning(`${attackName} hit for ${damage} damage!`);
+
+            document.getElementById('playerCard').classList.add('shake');
+            setTimeout(() => document.getElementById('playerCard').classList.remove('shake'), 300);
+
+            updateHPBar(true);
+
+            // Check if player fainted
+            if (battleState.playerHP <= 0) {
+                setTimeout(() => endBattle(opponent.name), 500);
+                return;
+            }
+
+            // Next turn
+            battleState.turn++;
+            document.getElementById('turnNumber').textContent = battleState.turn;
+        }
+
+        // End battle
+        function endBattle(winnerName) {
+            battleState.isFinished = true;
+            const player = battleState.playerPokemon;
+            const opponent = battleState.opponentPokemon;
+            const isPlayerWinner = winnerName === player.name;
+
+            addLog(`${winnerName} wins the battle!`, 'info');
+
+            // Show victory/defeat message
+            toastr[isPlayerWinner ? 'success' : 'error'](
+                `${winnerName} wins!`,
+                isPlayerWinner ? '🏆 Victory!' : '💀 Defeat!',
+                { timeOut: 3000 }
+            );
+
+            // Hide attack buttons and show new battle button
+            document.getElementById('attackButtons').classList.add('hidden');
+            document.getElementById('actionTitle').textContent = isPlayerWinner
+                ? '🏆 Victory! You Won!'
+                : '💀 Defeat! You Lost!';
+            document.getElementById('newBattleContainer').classList.remove('hidden');
+
+            // Add to history
+            battleHistory.unshift({
+                date: new Date().toLocaleString(),
+                pokemon1: player.name,
+                pokemon2: opponent.name,
+                winner: winnerName
+            });
+        }
+    </script>
+</body>
+</html>

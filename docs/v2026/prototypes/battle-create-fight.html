@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create New Fight</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .main-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .form-header h1 {
+            color: #333;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .form-header p {
+            color: #6c757d;
+            font-size: 1.1rem;
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-left: 5px solid #667eea;
+        }
+
+        .form-section-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .pokemon-selector {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 2px solid #dee2e6;
+            transition: all 0.3s;
+        }
+
+        .pokemon-selector:hover {
+            border-color: #667eea;
+            box-shadow: 0 3px 10px rgba(102, 126, 234, 0.2);
+        }
+
+        .pokemon-preview {
+            display: none;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 15px;
+            border: 2px solid #28a745;
+            text-align: center;
+        }
+
+        .pokemon-preview.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .pokemon-preview-sprite {
+            width: 120px;
+            height: 120px;
+            object-fit: contain;
+        }
+
+        .pokemon-preview-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .type-badge {
+            display: inline-block;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin: 5px;
+        }
+
+        .type-fire { background: #F08030; color: white; }
+        .type-water { background: #6890F0; color: white; }
+        .type-grass { background: #78C850; color: white; }
+        .type-electric { background: #F8D030; color: #333; }
+        .type-psychic { background: #F85888; color: white; }
+        .type-dragon { background: #7038F8; color: white; }
+        .type-ghost { background: #705898; color: white; }
+        .type-normal { background: #A8A878; color: white; }
+        .type-flying { background: #A890F0; color: white; }
+
+        .stat-mini {
+            display: inline-block;
+            margin: 5px 10px;
+            font-size: 0.9rem;
+        }
+
+        .stat-mini strong {
+            color: #667eea;
+        }
+
+        .vs-indicator {
+            text-align: center;
+            font-size: 3rem;
+            font-weight: bold;
+            color: #6c757d;
+            margin: 20px 0;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+
+        .btn-create {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        .btn-create:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .location-option {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 10px;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .location-option:hover {
+            background: #f0f0f0;
+        }
+
+        .location-option input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        .location-icon {
+            font-size: 1.5rem;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Header -->
+        <div class="form-header">
+            <h1><i class="bi bi-plus-circle-fill text-success"></i> Create New Fight</h1>
+            <p>Set up an epic Pokemon battle</p>
+        </div>
+
+        <!-- Info Box -->
+        <div class="info-box">
+            <i class="bi bi-info-circle-fill"></i>
+            <strong>How it works:</strong> You'll control the first Pokemon during the battle. The second Pokemon will fight automatically with random attacks.
+        </div>
+
+        <!-- Form -->
+        <form id="createFightForm">
+            <!-- Fight Details Section -->
+            <div class="form-section">
+                <h3 class="form-section-title"><i class="bi bi-card-text"></i> Fight Details</h3>
+
+                <div class="mb-3">
+                    <label for="fightName" class="form-label"><strong>Fight Name</strong> <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control form-control-lg" id="fightName" placeholder="e.g., Epic Showdown, Legendary Battle..." required>
+                    <div class="form-text">Give this battle a memorable name</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label"><strong>Battle Location</strong> <span class="text-danger">*</span></label>
+                    <div class="location-option">
+                        <input type="radio" name="location" value="Mt. Silver" id="loc1" checked>
+                        <span class="location-icon">⛰️</span>
+                        <label for="loc1" style="cursor: pointer; margin: 0; flex: 1;">
+                            <strong>Mt. Silver</strong><br>
+                            <small class="text-muted">Legendary mountain peak</small>
+                        </label>
+                    </div>
+                    <div class="location-option">
+                        <input type="radio" name="location" value="Dragon's Den" id="loc2">
+                        <span class="location-icon">🐉</span>
+                        <label for="loc2" style="cursor: pointer; margin: 0; flex: 1;">
+                            <strong>Dragon's Den</strong><br>
+                            <small class="text-muted">Sacred dragon training ground</small>
+                        </label>
+                    </div>
+                    <div class="location-option">
+                        <input type="radio" name="location" value="Cerulean Cave" id="loc3">
+                        <span class="location-icon">🕳️</span>
+                        <label for="loc3" style="cursor: pointer; margin: 0; flex: 1;">
+                            <strong>Cerulean Cave</strong><br>
+                            <small class="text-muted">Mysterious underground cavern</small>
+                        </label>
+                    </div>
+                    <div class="location-option">
+                        <input type="radio" name="location" value="Battle Tower" id="loc4">
+                        <span class="location-icon">🏢</span>
+                        <label for="loc4" style="cursor: pointer; margin: 0; flex: 1;">
+                            <strong>Battle Tower</strong><br>
+                            <small class="text-muted">Professional battle arena</small>
+                        </label>
+                    </div>
+                    <div class="location-option">
+                        <input type="radio" name="location" value="Pallet Town Arena" id="loc5">
+                        <span class="location-icon">🏟️</span>
+                        <label for="loc5" style="cursor: pointer; margin: 0; flex: 1;">
+                            <strong>Pallet Town Arena</strong><br>
+                            <small class="text-muted">Where it all began</small>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pokemon Selection Section -->
+            <div class="form-section">
+                <h3 class="form-section-title"><i class="bi bi-people-fill"></i> Select Fighters</h3>
+
+                <!-- Player Pokemon -->
+                <div class="pokemon-selector">
+                    <label for="playerPokemon" class="form-label">
+                        <strong><i class="bi bi-controller"></i> Your Pokemon (You Control)</strong>
+                        <span class="text-danger">*</span>
+                    </label>
+                    <select class="form-select form-select-lg" id="playerPokemon" required onchange="showPokemonPreview('player', this.value)">
+                        <option value="" selected>-- Select your fighter --</option>
+                        <option value="150">Mewtwo (Psychic)</option>
+                        <option value="6">Charizard (Fire/Flying)</option>
+                        <option value="149">Dragonite (Dragon/Flying)</option>
+                        <option value="130">Gyarados (Water/Flying)</option>
+                        <option value="25">Pikachu (Electric)</option>
+                        <option value="94">Gengar (Ghost)</option>
+                        <option value="1">Bulbasaur (Grass)</option>
+                        <option value="7">Squirtle (Water)</option>
+                        <option value="143">Snorlax (Normal)</option>
+                        <option value="151">Mew (Psychic)</option>
+                    </select>
+
+                    <!-- Player Pokemon Preview -->
+                    <div id="playerPreview" class="pokemon-preview">
+                        <img id="playerSprite" class="pokemon-preview-sprite" src="" alt="">
+                        <div class="pokemon-preview-name" id="playerName"></div>
+                        <div id="playerType"></div>
+                        <div class="mt-2">
+                            <span class="stat-mini"><strong>HP:</strong> <span id="playerHP"></span></span>
+                            <span class="stat-mini"><strong>ATK:</strong> <span id="playerATK"></span></span>
+                            <span class="stat-mini"><strong>DEF:</strong> <span id="playerDEF"></span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VS Indicator -->
+                <div class="vs-indicator">VS</div>
+
+                <!-- Opponent Pokemon -->
+                <div class="pokemon-selector">
+                    <label for="opponentPokemon" class="form-label">
+                        <strong><i class="bi bi-cpu"></i> Opponent Pokemon (AI Controlled)</strong>
+                        <span class="text-danger">*</span>
+                    </label>
+                    <select class="form-select form-select-lg" id="opponentPokemon" required onchange="showPokemonPreview('opponent', this.value)">
+                        <option value="" selected>-- Select opponent --</option>
+                        <option value="150">Mewtwo (Psychic)</option>
+                        <option value="6">Charizard (Fire/Flying)</option>
+                        <option value="149">Dragonite (Dragon/Flying)</option>
+                        <option value="130">Gyarados (Water/Flying)</option>
+                        <option value="25">Pikachu (Electric)</option>
+                        <option value="94">Gengar (Ghost)</option>
+                        <option value="1">Bulbasaur (Grass)</option>
+                        <option value="7">Squirtle (Water)</option>
+                        <option value="143">Snorlax (Normal)</option>
+                        <option value="151">Mew (Psychic)</option>
+                    </select>
+
+                    <!-- Opponent Pokemon Preview -->
+                    <div id="opponentPreview" class="pokemon-preview">
+                        <img id="opponentSprite" class="pokemon-preview-sprite" src="" alt="">
+                        <div class="pokemon-preview-name" id="opponentName"></div>
+                        <div id="opponentType"></div>
+                        <div class="mt-2">
+                            <span class="stat-mini"><strong>HP:</strong> <span id="opponentHP"></span></span>
+                            <span class="stat-mini"><strong>ATK:</strong> <span id="opponentATK"></span></span>
+                            <span class="stat-mini"><strong>DEF:</strong> <span id="opponentDEF"></span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="text-center mt-4">
+                <button type="button" class="btn btn-outline-secondary btn-lg me-2" onclick="window.location.href='battle-rankings.html'">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </button>
+                <button type="submit" class="btn btn-create btn-lg">
+                    <i class="bi bi-swords"></i> Start Battle
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Pokemon database (simulated)
+        const pokemonData = {
+            '150': { name: 'Mewtwo', type: 'psychic', types: ['Psychic'], hp: 106, attack: 110, defense: 90 },
+            '6': { name: 'Charizard', type: 'fire', types: ['Fire', 'Flying'], hp: 78, attack: 84, defense: 78 },
+            '149': { name: 'Dragonite', type: 'dragon', types: ['Dragon', 'Flying'], hp: 91, attack: 134, defense: 95 },
+            '130': { name: 'Gyarados', type: 'water', types: ['Water', 'Flying'], hp: 95, attack: 125, defense: 79 },
+            '25': { name: 'Pikachu', type: 'electric', types: ['Electric'], hp: 35, attack: 55, defense: 40 },
+            '94': { name: 'Gengar', type: 'ghost', types: ['Ghost'], hp: 60, attack: 65, defense: 60 },
+            '1': { name: 'Bulbasaur', type: 'grass', types: ['Grass'], hp: 45, attack: 49, defense: 49 },
+            '7': { name: 'Squirtle', type: 'water', types: ['Water'], hp: 44, attack: 48, defense: 65 },
+            '143': { name: 'Snorlax', type: 'normal', types: ['Normal'], hp: 160, attack: 110, defense: 65 },
+            '151': { name: 'Mew', type: 'psychic', types: ['Psychic'], hp: 100, attack: 100, defense: 100 }
+        };
+
+        function showPokemonPreview(fighter, pokemonId) {
+            if (!pokemonId) {
+                document.getElementById(fighter + 'Preview').classList.remove('active');
+                return;
+            }
+
+            const pokemon = pokemonData[pokemonId];
+            if (!pokemon) return;
+
+            // Update sprite
+            document.getElementById(fighter + 'Sprite').src =
+                `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemonId}.png`;
+
+            // Update name
+            document.getElementById(fighter + 'Name').textContent = pokemon.name;
+
+            // Update type badges
+            const typesHTML = pokemon.types.map(type =>
+                `<span class="type-badge type-${type.toLowerCase()}">${type}</span>`
+            ).join('');
+            document.getElementById(fighter + 'Type').innerHTML = typesHTML;
+
+            // Update stats
+            document.getElementById(fighter + 'HP').textContent = pokemon.hp;
+            document.getElementById(fighter + 'ATK').textContent = pokemon.attack;
+            document.getElementById(fighter + 'DEF').textContent = pokemon.defense;
+
+            // Show preview
+            document.getElementById(fighter + 'Preview').classList.add('active');
+        }
+
+        // Form submission
+        document.getElementById('createFightForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const fightName = document.getElementById('fightName').value;
+            const location = document.querySelector('input[name="location"]:checked').value;
+            const playerPokemon = document.getElementById('playerPokemon').value;
+            const opponentPokemon = document.getElementById('opponentPokemon').value;
+
+            // Validation
+            if (!fightName || !playerPokemon || !opponentPokemon) {
+                alert('Please fill in all required fields!');
+                return;
+            }
+
+            if (playerPokemon === opponentPokemon) {
+                alert('Please select different Pokemon for each fighter!');
+                return;
+            }
+
+            // Store fight data (in real app, this would be sent to server)
+            const fightData = {
+                name: fightName,
+                location: location,
+                playerPokemonId: playerPokemon,
+                opponentPokemonId: opponentPokemon,
+                timestamp: new Date().toISOString()
+            };
+
+            console.log('Creating fight:', fightData);
+
+            // Redirect to battle arena
+            alert(`Fight "${fightName}" created!\nLocation: ${location}\nYour Pokemon: ${pokemonData[playerPokemon].name}\nOpponent: ${pokemonData[opponentPokemon].name}\n\nRedirecting to battle arena...`);
+
+            // In real app: window.location.href = 'battle-arena.html?fightId=123';
+            window.location.href = 'battle-arena.html';
+        });
+    </script>
+</body>
+</html>
